@@ -38,6 +38,10 @@ function applyCam(){
                       cam.target.z + Math.cos(cam.yaw)*cp*cam.dist);
   if (camera.position.y < 0.35) camera.position.y = 0.35;
   camera.lookAt(cam.target);
+  /* keep the near plane in proportion to the zoom so depth precision follows the camera */
+  const near = clamp(cam.dist*0.02, 0.05, 0.9);
+  if (Math.abs(near - camera.near) > camera.near*0.05){ camera.near = near; camera.updateProjectionMatrix(); }
+  fitShadow(cam.dist);
 }
 let flight = null;
 function flyTo(to, dur, onDone){

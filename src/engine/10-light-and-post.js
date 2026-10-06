@@ -4,7 +4,17 @@
 const sun = new THREE.DirectionalLight(0xffffff, 2);
 sun.castShadow = true;
 sun.shadow.mapSize.set(MOBILE ? 1024 : 2048, MOBILE ? 1024 : 2048);
-(function(){ const c = sun.shadow.camera; c.left = -15; c.right = 15; c.top = 11; c.bottom = -11; c.near = 1; c.far = 140; })();
+/* the shadow area grows with the zoom: tight and sharp up close, wide enough when zoomed out
+   that its edge never cuts a shadow off in plain view */
+let shadowScale = 0;
+function fitShadow(dist){
+  const s = clamp(dist/20, 1, 2.6);
+  if (Math.abs(s - shadowScale) < 0.06) return;
+  shadowScale = s;
+  const c = sun.shadow.camera; c.left = -15*s; c.right = 15*s; c.top = 11*s; c.bottom = -11*s; c.near = 1; c.far = 160;
+  c.updateProjectionMatrix();
+}
+fitShadow(20);
 sun.shadow.bias = -0.0003; sun.shadow.normalBias = 0.015;
 sun.target.position.set(0, 0.5, 0);
 scene.add(sun, sun.target);
@@ -62,8 +72,10 @@ void main(){
 let composer = null, bloomPass = null, gradePass = null;
 if (HAS_POST){
   const sz = renderer.getDrawingBufferSize(new THREE.Vector2()), gl2 = renderer.capabilities.isWebGL2;
-  const rt = gl2 ? new THREE.WebGLMultisampleRenderTarget(sz.x, sz.y, {format:THREE.RGBAFormat})
-                 : new THREE.WebGLRenderTarget(sz.x, sz.y, {format:THREE.RGBAFormat});
+  /* stencilBuffer gives the target a 24-bit depth buffer; without it three r128 allocates 16 bits,
+     which is far too coarse at a distance: the sea fights the cliffs under it and legends flicker */
+  const RT = {format:THREE.RGBAFormat, stencilBuffer:true};
+  const rt = gl2 ? new THREE.WebGLMultisampleRenderTarget(sz.x, sz.y, RT) : new THREE.WebGLRenderTarget(sz.x, sz.y, RT);
   if (gl2) rt.samples = 4;
   composer = new THREE.EffectComposer(renderer, rt);
   composer.addPass(new THREE.RenderPass(scene, camera));
