@@ -2718,6 +2718,9 @@ void main(){
   o.rgb += (hash(vUv * uRes + fract(uTime * 7.13) * 91.7) - 0.5) * uGrain;
   gl_FragColor = o;
 }`;
+/* #record in the address turns off the film grain and colour fringing: per-frame noise is what
+   video encoders (and X's re-encode in particular) waste their bitrate on, so recordings come out soft */
+const RECORDING = /(^|#)record\b/.test(location.hash);
 let composer = null, bloomPass = null, gradePass = null;
 if (HAS_POST){
   const sz = renderer.getDrawingBufferSize(new THREE.Vector2()), gl2 = renderer.capabilities.isWebGL2;
@@ -2731,7 +2734,7 @@ if (HAS_POST){
   bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.4, 0.62, 0.78);
   composer.addPass(bloomPass);
   gradePass = new THREE.ShaderPass({
-    uniforms:{tDiffuse:{value:null}, uTime:{value:0}, uVig:{value:0.34}, uGrain:{value:0.028}, uCA:{value:0.006},
+    uniforms:{tDiffuse:{value:null}, uTime:{value:0}, uVig:{value:0.34}, uGrain:{value:RECORDING ? 0 : 0.028}, uCA:{value:RECORDING ? 0 : 0.006},
       uTint:{value:new V3(1, 1, 1)}, uRes:{value:new THREE.Vector2(sz.x, sz.y)}},
     vertexShader:GRADE_VS, fragmentShader:GRADE_FS});
   composer.addPass(gradePass);

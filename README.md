@@ -16,6 +16,8 @@ No code and no sign-up. Everything runs in your browser.
    - **Netlify:** drag the folder onto [app.netlify.com/drop](https://app.netlify.com/drop).
    - **GitHub Pages:** add the file to a repository, then turn on Pages under *Settings → Pages*.
 
+**Recording a video of your site?** Add `#record` to the end of the address (for example `…/index.html#record`). That turns off the film grain, which video compression handles badly.
+
 To change your site later, open the studio and use **Open a saved portfolio** to load the `index.html` you downloaded (or the `portfolio.json` project file).
 
 ### Streets
