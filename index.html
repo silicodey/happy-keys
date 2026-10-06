@@ -4032,7 +4032,7 @@ function siteHTML(){
   return h;
 }
 async function saveFile(name, text, mime){
-  /* inside Claude the page asks the viewer to confirm the save; hosted anywhere else, a plain download */
+  /* in hosts that sandbox downloads, ask the host to save the file; everywhere else, a plain download */
   if (window.claude && typeof window.claude.use === 'function'){
     let dl = null;
     try { dl = await window.claude.use('downloads'); } catch (_){}
