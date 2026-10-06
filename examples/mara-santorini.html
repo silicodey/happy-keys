@@ -3504,7 +3504,7 @@ renderer.setAnimationLoop(() => {
   render(dt);
   if (frames === 2) cv.style.opacity = '';
   if (!introReady && frames >= 3){ introReady = true; $('loadBar').style.transform = 'scaleX(1)'; $('intro').classList.add('ready'); }
-  if (liveT > 6 && qIdx < QUALITY.length - 1){
+  if (liveT > 6 && qIdx < QUALITY.length - 1 && !RECORDING){   // a recording keeps full sharpness even if the recorder slows the frame rate
     perfAcc += raw;
     if (++perfN >= 120){
       const avg = perfAcc/perfN; perfAcc = 0; perfN = 0;
