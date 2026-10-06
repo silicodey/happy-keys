@@ -1,0 +1,683 @@
+<!--KS:STUDIO-->
+<style>
+/* Studio: a glass panel of guided questions beside the live keyboard.
+   Shares the viewer's night palette; amber marks what the studio asks of you. */
+:root{
+  color-scheme:dark;
+  --panel:rgba(11,16,36,.88);
+  --field:rgba(242,240,234,.06);
+  --fieldH:rgba(242,240,234,.1);
+  --line:rgba(242,240,234,.12);
+  --ok:#86D3AE;
+  --warn:#F2BE72;
+  --err:#FF9D8A;
+  --kw:448px;
+}
+body.studio #intro,body.studio:not(.visitor) #brand,body.studio:not(.visitor) #progress,body.studio:not(.visitor) #hint{display:none}
+body.studio.visitor #intro{display:grid}
+body.studio.visitor #ks{display:none}
+body.studio #panel{width:min(390px,30vw)}
+#ks{position:fixed;z-index:9;top:16px;left:16px;bottom:16px;width:var(--kw);display:flex;flex-direction:column;
+  background:var(--panel);border:1px solid var(--hair);border-radius:24px;
+  backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);
+  box-shadow:0 30px 80px rgba(3,6,18,.45);color:var(--wash);font-family:var(--sans);overflow:hidden}
+#ks *{box-sizing:border-box}
+:where(#ks) button{font:inherit;color:inherit;cursor:pointer}
+#ks :focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.ks-top{padding:20px 24px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:14px}
+.ks-brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.ks-brand b{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1;letter-spacing:.005em}
+.ks-brand b i{font-style:italic;color:var(--mute)}
+.ks-saved{font-size:12px;color:var(--faint);display:flex;align-items:center;gap:7px;white-space:nowrap}
+.ks-saved::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--ok);opacity:.8}
+.ks-saved.off::before{background:var(--faint)}
+.ks-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;list-style:none;margin:0;padding:0}
+.ks-steps button{width:100%;background:none;border:0;padding:0;text-align:left;display:flex;flex-direction:column;gap:7px}
+.ks-steps i{display:block;height:3px;border-radius:3px;background:var(--line);transition:background .4s}
+.ks-steps span{font-size:12px;color:var(--faint);transition:color .3s}
+.ks-steps .done i{background:rgba(255,184,103,.45)}
+.ks-steps .now i{background:var(--amber)}
+.ks-steps .now span{color:var(--wash)}
+.ks-body{flex:1;overflow-y:auto;padding:24px 24px 28px;scrollbar-width:thin;scrollbar-color:rgba(242,240,234,.2) transparent}
+.ks-q{font-family:var(--serif);font-weight:400;font-size:34px;line-height:1.04;margin:0 0 10px;letter-spacing:-.01em;text-wrap:balance}
+.ks-help{font-size:14px;line-height:1.55;color:var(--mute);margin:0 0 22px;max-width:46ch}
+.ks-field{display:flex;flex-direction:column;gap:7px;margin:0 0 18px}
+.ks-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13.5px;font-weight:500}
+.ks-label .opt{font-weight:400;color:var(--faint);font-size:12px}
+.best{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--amber);white-space:nowrap}
+.best::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber)}
+#ks input[type=text],#ks input[type=url],#ks textarea,#ks select{width:100%;background:var(--field);border:1px solid transparent;border-radius:12px;
+  padding:11px 13px;color:var(--wash);font:inherit;font-size:14.5px;line-height:1.45;transition:background .2s,border-color .2s}
+#ks textarea{resize:vertical;min-height:96px}
+#ks input::placeholder,#ks textarea::placeholder{color:rgba(242,240,234,.32)}
+#ks input:hover,#ks textarea:hover,#ks select:hover{background:var(--fieldH)}
+#ks input:focus,#ks textarea:focus,#ks select:focus{outline:none;border-color:rgba(255,184,103,.55);background:var(--fieldH)}
+#ks select option{background:#141a33}
+.ks-hint{font-size:12.5px;line-height:1.5;color:var(--faint)}
+.ks-err{font-size:12.5px;line-height:1.45;color:var(--err)}
+.ks-count{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.ks-count.over{color:var(--err)}
+.ks-sep{height:1px;background:var(--line);margin:22px 0}
+/* settings */
+.ks-places{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 26px}
+.ks-place{position:relative;display:flex;flex-direction:column;background:var(--field);border:1px solid transparent;border-radius:16px;padding:0;
+  overflow:hidden;text-align:left;transition:border-color .25s,transform .25s var(--ease)}
+.ks-place svg{display:block;width:100%;height:auto;aspect-ratio:16/10}
+.ks-place .meta{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px}
+.ks-place b{font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.1}
+.ks-place small{font-size:12px;line-height:1.4;color:var(--faint)}
+.ks-place:hover:not([disabled]){transform:translateY(-2px)}
+.ks-place.on{border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,184,103,.14)}
+.ks-place[disabled]{cursor:default;opacity:.55}
+.ks-place .soon{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+  padding:4px 7px;border-radius:6px;background:rgba(8,12,28,.7);color:var(--mute)}
+.ks-chips{display:flex;flex-wrap:wrap;gap:7px}
+.ks-chip{border:1px solid var(--line);background:none;border-radius:999px;padding:8px 14px;font-size:13px;color:var(--mute);transition:all .2s}
+.ks-chip:hover{color:var(--wash);border-color:rgba(242,240,234,.3)}
+.ks-chip.on{background:var(--wash);color:var(--night);border-color:var(--wash);font-weight:600}
+/* projects */
+.ks-empty{border:1px dashed rgba(242,240,234,.24);border-radius:18px;padding:26px 22px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.ks-empty p{margin:0;font-size:14px;line-height:1.55;color:var(--mute)}
+.ks-cards{display:flex;flex-direction:column;gap:10px}
+.ks-card{border-radius:16px;background:var(--field);border:1px solid transparent;transition:border-color .25s,background .25s}
+.ks-card.open{background:rgba(242,240,234,.045);border-color:var(--line)}
+.ks-card.bad{border-color:rgba(255,157,138,.4)}
+.ks-head{width:100%;display:flex;align-items:center;gap:12px;background:none;border:0;padding:12px 14px;text-align:left}
+.ks-head .sw{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 12px currentColor}
+.ks-head .nm{flex:1;min-width:0;font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ks-head .nm.ph{color:var(--faint);font-weight:400}
+.ks-kbd{font-family:var(--mono);font-size:11px;min-width:30px;text-align:center;padding:4px 7px;border-radius:7px;background:rgba(242,240,234,.1);color:var(--mute)}
+.ks-head svg{width:16px;height:16px;stroke:var(--faint);fill:none;stroke-width:1.8;transition:transform .3s}
+.ks-card.open .ks-head svg{transform:rotate(180deg)}
+.ks-form{padding:4px 14px 16px}
+.ks-card:not(.open) .ks-form{display:none}
+.ks-minis{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ks-mini{aspect-ratio:1;border-radius:12px;border:1px solid transparent;background:rgba(242,240,234,.05);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;padding:4px;transition:all .2s}
+.ks-mini svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;color:var(--mute)}
+.ks-mini span{font-size:9.5px;color:var(--faint);line-height:1.1;text-align:center}
+.ks-mini:hover{background:rgba(242,240,234,.1)}
+.ks-mini.on{border-color:var(--c,var(--amber));background:rgba(242,240,234,.1)}
+.ks-mini.on svg{color:var(--c,var(--amber))}
+.ks-swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ks-sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;padding:0;background-clip:padding-box;transition:transform .2s}
+.ks-sw:hover{transform:scale(1.12)}
+.ks-sw.on{box-shadow:0 0 0 2px var(--night),0 0 0 4px var(--wash)}
+.ks-custom{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--faint);cursor:pointer}
+.ks-custom input{width:26px;height:26px;border:0;padding:0;background:none;cursor:pointer}
+.ks-facts{display:flex;flex-direction:column;gap:7px}
+.ks-fact{display:grid;grid-template-columns:1fr 1fr auto;gap:7px}
+.ks-x{background:none;border:0;color:var(--faint);padding:0 6px;font-size:18px;line-height:1}
+.ks-x:hover{color:var(--wash)}
+.ks-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ks-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ks-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;padding-top:14px;border-top:1px solid var(--line)}
+/* buttons */
+.ks-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:10px 16px;font-size:13.5px;
+  border:1px solid var(--line);background:none;color:var(--mute);transition:all .2s}
+.ks-btn:hover{color:var(--wash);border-color:rgba(242,240,234,.32)}
+.ks-btn[disabled]{opacity:.4;cursor:default}
+.ks-btn.primary{background:var(--wash);border-color:var(--wash);color:var(--night);font-weight:600}
+.ks-btn.primary:hover{box-shadow:0 0 0 5px rgba(242,240,234,.13)}
+.ks-btn.amber{background:var(--amber);border-color:var(--amber);color:#2A1A08;font-weight:600}
+.ks-btn.amber:hover{box-shadow:0 0 0 5px rgba(255,184,103,.2)}
+.ks-btn.danger{color:var(--err);border-color:rgba(255,157,138,.35)}
+.ks-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ks-link{background:none;border:0;padding:0;color:var(--mute);text-decoration:underline;text-underline-offset:3px;font-size:13px}
+.ks-link:hover{color:var(--wash)}
+.ks-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+/* publish */
+.ks-check{list-style:none;margin:0 0 20px;padding:0;display:flex;flex-direction:column;gap:9px}
+.ks-check li{display:grid;grid-template-columns:18px 1fr;gap:10px;font-size:14px;line-height:1.5;color:var(--mute)}
+.ks-check li::before{content:'';width:9px;height:9px;margin-top:6px;border-radius:50%;background:var(--ok)}
+.ks-check li.warn::before{background:var(--warn)}
+.ks-check li.bad::before{background:var(--err)}
+.ks-check b{color:var(--wash);font-weight:500}
+.ks-big{display:flex;flex-direction:column;gap:9px;margin:0 0 20px}
+.ks-big .ks-btn{justify-content:flex-start;padding:14px 18px;border-radius:16px;font-size:14.5px}
+.ks-big .ks-btn small{display:block;font-weight:400;font-size:12.5px;opacity:.72;margin-top:2px}
+.ks-big .ks-btn span{display:flex;flex-direction:column;align-items:flex-start;text-align:left}
+.ks-note{font-size:13px;line-height:1.55;color:var(--mute);margin:0 0 10px}
+.ks-code{position:relative;font-family:var(--mono);font-size:12px;line-height:1.7;background:rgba(0,0,0,.28);border-radius:12px;padding:12px 14px;
+  margin:0 0 12px;overflow-x:auto;white-space:pre;color:#DCD6C8}
+.ks-toast{position:fixed;z-index:40;left:50%;bottom:28px;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:var(--wash);color:var(--night);font-size:13.5px;font-weight:500;padding:11px 18px;border-radius:999px;transition:all .35s var(--ease)}
+.ks-toast.on{opacity:1;transform:translate(-50%,0)}
+.ks-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
+/* the curtain while a street is rebuilt */
+#ks-fade{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;display:grid;place-items:center;
+  background:radial-gradient(120% 90% at 50% 100%,#3A3F6E 0%,#1A2146 46%,#0B1128 100%);transition:opacity .35s ease}
+#ks-fade.on{opacity:1}
+#ks-fade p{font-family:var(--serif);font-style:italic;font-size:26px;color:var(--mute);margin:0 0 0 var(--kw)}
+#ks-back{position:fixed;z-index:30;top:max(18px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:none}
+body.visitor #ks-back{display:inline-flex}
+@media (max-width:899px){
+  :root{--kw:0px}
+  #ks{top:auto;left:8px;right:8px;bottom:8px;width:auto;height:58vh;border-radius:22px}
+  .ks-q{font-size:28px}
+  .ks-body{padding:20px 18px 24px}
+  .ks-top{padding:16px 18px 12px}
+  #ks-fade p{margin:0 0 40vh;font-size:22px}
+  .ks-minis{grid-template-columns:repeat(5,1fr)}
+}
+@media (max-width:420px){ .ks-grid2{grid-template-columns:1fr} .ks-places{grid-template-columns:1fr 1fr} }
+@media (prefers-reduced-motion:reduce){ #ks *,#ks-fade{transition:none !important} }
+</style>
+
+<div id="ks-fade" aria-hidden="true"><p id="ks-fade-tx">Setting the scene</p></div>
+<button class="ks-btn primary" id="ks-back" type="button">Back to the studio</button>
+<div class="ks-toast" id="ks-toast" role="status" aria-live="polite"></div>
+<section id="ks" aria-label="Keystreet studio" hidden>
+  <header class="ks-top">
+    <div class="ks-brand"><b>Keystreet <i>studio</i></b><span class="ks-saved" id="ks-saved">Saved in this browser</span></div>
+    <ol class="ks-steps" id="ks-steps"></ol>
+  </header>
+  <div class="ks-body" id="ks-body"></div>
+  <footer class="ks-foot">
+    <button class="ks-btn" id="ks-prev" type="button">Back</button>
+    <button class="ks-btn primary" id="ks-next" type="button">Continue</button>
+  </footer>
+</section>
+
+<script>
+(function(){
+'use strict';
+/* The page as it was served, before anything ran: the export is this
+   same file with the studio removed and the portfolio written in. */
+const PRISTINE = window.KS_TEMPLATE || '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+const STORE = 'keystreet.draft.v1';
+const MARK = '<' + '!--KS:STUDIO--' + '>';
+const STEPS = ['You', 'Street', 'Your work', 'Publish'];
+const TOD_CHOICES = [['afternoon', 'Afternoon'], ['golden', 'Golden hour'], ['blue', 'Blue hour'], ['night', 'Night']];
+const MINI_NAMES = {house:'Lit house', vault:'Vault', forge:'Forge', orbit:'Planet', ledger:'Ledger', blueprint:'Blueprint',
+  palette:'Palette', telescope:'Telescope', compass:'Compass', loom:'Loom', ship:'Ship', sapling:'Sapling', gears:'Gears', scales:'Scales', lantern:'Lantern'};
+const MINI_HINT = {house:'a home base, an archive', vault:'anything kept safe', forge:'where things get made', orbit:'3D, space, the frontier',
+  ledger:'money, payroll, accounts', blueprint:'property, building, structure', palette:'design and creative tools', telescope:'research, discovery',
+  compass:'strategy and direction', loom:'connecting things together', ship:'a launch, a big milestone', sapling:'early and growing',
+  gears:'infrastructure, automation', scales:'law, fairness, valuation', lantern:'teaching, guiding'};
+const ICONS = {
+  house:'<path d="M4 11l8-6.5 8 6.5v8.5H4z"/><path d="M10 19.5v-5h4v5"/>',
+  vault:'<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="12" cy="12" r="3.6"/><path d="M12 8.4v1.4M15.6 12h-1.4"/>',
+  forge:'<path d="M3.5 8.5h11c0 2.8 2.2 4 5.5 4v2h-6l1.2 4.5H8.8L10 14.5H7.2C4.6 14.5 3.5 12 3.5 8.5z"/>',
+  orbit:'<circle cx="12" cy="12" r="4.2"/><ellipse cx="12" cy="12" rx="9.5" ry="3.4" transform="rotate(-20 12 12)"/>',
+  ledger:'<ellipse cx="11" cy="8" rx="6" ry="2.2"/><path d="M5 8v8c0 1.2 2.7 2.2 6 2.2s6-1 6-2.2V8"/><path d="M5 12c0 1.2 2.7 2.2 6 2.2s6-1 6-2.2"/>',
+  blueprint:'<rect x="3.5" y="5.5" width="17" height="13" rx="1"/><path d="M14 16v-5.5h3V16M6.5 9h5M6.5 12h4"/>',
+  palette:'<path d="M12 4a8 8 0 1 0 0 16c1.3 0 1.8-1 1.3-2.1-.6-1.4.3-2.6 1.8-2.6H17a3 3 0 0 0 3-3C20 7.6 16.4 4 12 4z"/><circle cx="8" cy="11" r="1"/><circle cx="10.5" cy="7.8" r="1"/><circle cx="14.5" cy="8" r="1"/>',
+  telescope:'<path d="M4 13.5l12.5-6 1.6 3.4-12.5 6z"/><path d="M11 15.5l-3 5M12 15l2.5 5.5"/>',
+  compass:'<circle cx="12" cy="12" r="8"/><path d="M14.8 9.2l-1.6 4-4 1.6 1.6-4z"/>',
+  loom:'<rect x="4.5" y="4.5" width="15" height="15" rx="1"/><path d="M8 4.5v15M12 4.5v15M16 4.5v15M6 12.5h12"/>',
+  ship:'<rect x="3" y="9" width="15.5" height="8" rx="3.5"/><path d="M18.5 12h2.5M8 15.5h6M11 15.5v-5l3.2 3.5"/>',
+  sapling:'<path d="M8 20h8l1-5H7z"/><path d="M12 15V8"/><path d="M12 10c-3.5 0-5-2-5-4.5 3 0 5 1.5 5 4.5zM12 8.5c0-2.6 1.6-4 4.5-4 0 2.6-1.8 4-4.5 4z"/>',
+  gears:'<circle cx="9" cy="10" r="3.6"/><circle cx="16.3" cy="15.5" r="2.6"/><path d="M9 4.2v1.6M9 14.2v1.6M3.2 10h1.6M13.2 10h1.6M4.9 5.9l1.1 1.1M12 13l1.1 1.1M4.9 14.1L6 13M12 7l1.1-1.1"/>',
+  scales:'<path d="M12 4v16M8 20h8M5 7.5h14"/><path d="M5 7.5l-2.5 6h5zM19 7.5l-2.5 6h5z"/>',
+  lantern:'<path d="M12 3v2.5"/><path d="M8.5 7h7l-.8 1.5v8l.8 1.5h-7l.8-1.5v-8z"/><path d="M10 11.5h4"/>'
+};
+const ART = {
+  santorini:'<svg viewBox="0 0 160 100" aria-hidden="true"><defs><linearGradient id="ksgS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E2856"/><stop offset=".58" stop-color="#6E6596"/><stop offset=".74" stop-color="#E8906E"/></linearGradient></defs><rect width="160" height="100" fill="url(#ksgS)"/><rect y="71" width="160" height="29" fill="#1C3053"/><path d="M96 74h40M104 78h22M110 82h12" stroke="#E8906E" stroke-opacity=".55" stroke-width="1.2"/><circle cx="116" cy="70" r="5" fill="#FFC27A"/><path d="M0 62q30-6 72 4v34H0z" fill="#3A2B2B"/><g fill="#F2EFE8"><rect x="4" y="50" width="13" height="11"/><rect x="19" y="46" width="11" height="15"/><rect x="33" y="52" width="15" height="10"/><rect x="51" y="57" width="12" height="8"/></g><path d="M19.5 46a5 5 0 0 1 10 0z" fill="#2C6DAA"/><g fill="#FFC98A"><rect x="8" y="55" width="2" height="2"/><rect x="24" y="52" width="2" height="2"/><rect x="40" y="56" width="2" height="2"/></g></svg>',
+  kyoto:'<svg viewBox="0 0 160 100" aria-hidden="true"><defs><linearGradient id="ksgK" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#232B5C"/><stop offset=".6" stop-color="#7A5E86"/><stop offset=".76" stop-color="#E07A55"/></linearGradient></defs><rect width="160" height="100" fill="url(#ksgK)"/><path d="M0 70q30-16 62-6t52-8 46 6v38H0z" fill="#3F3F67"/><path d="M0 78q40-8 80 0t80-2v24H0z" fill="#2B2B4C"/><g fill="#FFC98A"><circle cx="20" cy="84" r=".9"/><circle cx="34" cy="82" r=".9"/><circle cx="47" cy="85" r=".9"/><circle cx="61" cy="83" r=".9"/><circle cx="78" cy="86" r=".9"/><circle cx="94" cy="84" r=".9"/><circle cx="130" cy="85" r=".9"/><circle cx="146" cy="83" r=".9"/></g><g fill="#1B1726"><path d="M108 82V44h8v38z"/><path d="M100 48h24l-4 4h-16zM101 56h22l-4 4h-14zM102 64h20l-4 4h-12zM103 72h18l-4 4h-10z"/><path d="M111 44v-9h2v9z"/></g><g fill="#B32E25"><circle cx="8" cy="92" r="10"/><circle cx="22" cy="97" r="9"/><circle cx="150" cy="95" r="11"/></g><circle cx="16" cy="88" r="5" fill="#D1602A"/></svg>',
+  brooklyn:'<svg viewBox="0 0 160 100" aria-hidden="true"><defs><linearGradient id="ksgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25304F"/><stop offset=".7" stop-color="#C98468"/></linearGradient></defs><rect width="160" height="100" fill="url(#ksgB)"/><g fill="#1C2035"><rect x="8" y="46" width="10" height="34"/><rect x="20" y="38" width="8" height="42"/><rect x="30" y="52" width="12" height="28"/><rect x="88" y="30" width="9" height="50"/><rect x="99" y="42" width="11" height="38"/><rect x="112" y="50" width="8" height="30"/><rect x="122" y="36" width="10" height="44"/><rect x="134" y="54" width="14" height="26"/></g><path d="M40 80Q62 58 84 80M44 72v8M80 72v8" stroke="#1C2035" stroke-width="2" fill="none"/><rect y="80" width="160" height="20" fill="#18203A"/></svg>',
+  lofoten:'<svg viewBox="0 0 160 100" aria-hidden="true"><defs><linearGradient id="ksgL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0A1330"/><stop offset="1" stop-color="#22325A"/></linearGradient></defs><rect width="160" height="100" fill="url(#ksgL)"/><path d="M10 30q40 10 70-6t70 4" stroke="#5FE0A8" stroke-opacity=".5" stroke-width="7" fill="none"/><path d="M0 74l26-34 18 22 22-30 30 42 22-26 42 32v12H0z" fill="#18223D"/><rect y="78" width="160" height="22" fill="#101A33"/><g fill="#B23A2E"><rect x="40" y="70" width="9" height="7"/><rect x="54" y="72" width="8" height="6"/><rect x="104" y="71" width="9" height="7"/></g></svg>'
+};
+const PLACE_TEXT = {
+  santorini:'Whitewashed terraces above the caldera, a cruise ship crossing at dusk.',
+  kyoto:'A temple stage over the city, a lantern lane climbing to a pagoda, maple leaves falling.',
+  brooklyn:'Brownstones and fire escapes on a rooftop facing the skyline.',
+  lofoten:'Red fishing cabins on a harbour lane, northern lights at night.'
+};
+const EXAMPLE = {owner:{name:'Mara Lindqvist', subtitle:'Landscape architecture · an example portfolio'}, intro:{kicker:'Studio Lindqvist'},
+  projects:[
+    {name:'Harbour Steps', category:'Public waterfront', color:'#2F8F9D', miniature:'ship', lede:'A flight of wide stone steps that turned a car park into the town’s living room.',
+      body:['Two hundred metres of quay where people now sit, swim and watch the ferries come in. The steps double as a flood defence, rising in terraces so a storm surge reaches the stone and never the shops.'],
+      facts:[['Client', 'City harbour board'], ['Area', '1.4 hectares']], tags:['Flood resilience', 'Public space']},
+    {name:'Rooftop Orchard', category:'Urban agriculture', color:'#6E9F4A', miniature:'sapling', lede:'Forty fruit trees on top of a supermarket.',
+      body:['Shallow-rooted apple and quince varieties on a lightweight soil build-up, harvested by the people who live in the flats next door.'], facts:[['Trees', '40'], ['Soil depth', '60 cm']], tags:['Green roofs']},
+    {name:'The Salt Marsh Study', key:'F2', category:'Research', color:'#C9A23A', miniature:'telescope', lede:'Five years watching a marsh decide where to grow.',
+      body:['A long field study of how planted salt marsh migrates as the sea rises, and what designers should stop trying to control.'], facts:[['Duration', 'Five years']], tags:['Coastal ecology']},
+    {name:'Studio Lindqvist', category:'The practice', color:'#D9705B', miniature:'compass', lede:'A small office that draws by hand before it draws on screen.',
+      body:['Six people, one long table, and a rule that every project starts with a site walk at dawn.'], facts:[['Team', 'Six']], tags:['Landscape']}
+  ]};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let KS = null, engine = null, sig = '', res = null, state = null, step = 0, openCard = -1, timer = 0, saveTimer = 0, building = false;
+let pendingRemove = -1, confirmReset = false, storageOk = true, visitor = false, lastTod = null;
+const wide = () => innerWidth >= 900;
+
+function blank(){ return {owner:{name:'', subtitle:''}, intro:{}, scene:{theme:'keyboard', setting:'santorini', timeOfDay:'blue'}, projects:[]}; }
+function normalize(raw){
+  const s = blank();
+  if (!raw || typeof raw !== 'object') return s;
+  const o = raw.owner || {}, sc = raw.scene || {};
+  s.owner.name = String(o.name || ''); s.owner.subtitle = String(o.subtitle || '');
+  if (o.title) s.owner.title = String(o.title);
+  if (o.description) s.owner.description = String(o.description);
+  s.intro = Object.assign({}, raw.intro || {});
+  s.scene.setting = String(sc.setting || sc.street || 'santorini').toLowerCase();
+  if (!KS.settings[s.scene.setting] || !KS.settings[s.scene.setting].ready) s.scene.setting = 'santorini';
+  const t = sc.timeOfDay;
+  s.scene.timeOfDay = typeof t === 'string' && KS.tods[t.toLowerCase()] !== undefined ? t.toLowerCase() : (typeof t === 'number' ? t : 'blue');
+  s.projects = (Array.isArray(raw.projects) ? raw.projects : []).slice(0, KS.max).map(p => ({
+    name:String(p.name || ''), lede:String(p.lede || ''), category:String(p.category || ''), miniature:String(p.miniature || ''),
+    color:String(p.color || ''), url:String(p.url || ''), key:String(p.key || ''),
+    body:Array.isArray(p.body) ? p.body.map(String) : (p.body ? [String(p.body)] : []),
+    facts:(Array.isArray(p.facts) ? p.facts : []).map(f => Array.isArray(f) ? [String(f[0] || ''), String(f[1] || '')] : [String((f && f.label) || ''), String((f && f.value) || '')]),
+    tags:(Array.isArray(p.tags) ? p.tags : []).map(String)
+  }));
+  return s;
+}
+/* the portfolio as it will be written into the file: empty fields left out */
+function portfolio(){
+  const out = {version:1, owner:{name:state.owner.name.trim()}, scene:{theme:'keyboard', setting:state.scene.setting, timeOfDay:state.scene.timeOfDay}};
+  for (const k of ['subtitle', 'title', 'description']) if (state.owner[k] && state.owner[k].trim()) out.owner[k] = state.owner[k].trim();
+  const intro = {};
+  for (const k of ['kicker', 'line']) if (state.intro[k] && String(state.intro[k]).trim()) intro[k] = String(state.intro[k]).trim();
+  if (Object.keys(intro).length) out.intro = intro;
+  out.projects = state.projects.map(p => {
+    const q = {name:p.name.trim()};
+    for (const k of ['key', 'category', 'color', 'url', 'miniature', 'lede']) if (p[k] && p[k].trim()) q[k] = p[k].trim();
+    const body = p.body.map(t => t.trim()).filter(Boolean); if (body.length) q.body = body;
+    const facts = p.facts.filter(f => f[0].trim() && f[1].trim()).map(f => [f[0].trim(), f[1].trim()]); if (facts.length) q.facts = facts;
+    const tags = p.tags.map(t => t.trim()).filter(Boolean); if (tags.length) q.tags = tags;
+    return q;
+  });
+  return out;
+}
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(STORE, JSON.stringify({state, step})); storageOk = true; } catch (_){ storageOk = false; }
+    const el = $('ks-saved'); el.classList.toggle('off', !storageOk);
+    el.textContent = storageOk ? 'Saved in this browser' : 'Not saved: this browser blocks storage';
+  }, 350);
+}
+function restore(){
+  try { const raw = localStorage.getItem(STORE); if (raw){ const d = JSON.parse(raw); return {state:normalize(d.state), step:d.step | 0}; } } catch (_){ storageOk = false; }
+  return null;
+}
+function toast(msg){ const t = $('ks-toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 2600); }
+
+/* ── the live scene ─────────────────────────────────────── */
+function signature(r){ return r.meta.street + '|' + r.order.map(k => k + ':' + r.products[k].arche).join(','); }
+function insets(){ return wide() ? [($('ks').offsetWidth || 448) + 16, 0] : [0, Math.round(innerHeight*0.58)]; }
+function refresh(){
+  res = KS.validate(portfolio(), {preview:true});
+  if (res.errors.length){ markErrors(); return; }
+  KS.applyMeta(res.meta);
+  markErrors();
+  const s = signature(res);
+  if (!engine || s !== sig){ clearTimeout(timer); timer = setTimeout(() => rebuild(), engine ? 420 : 0); return; }
+  engine.update(res.products);
+  if (lastTod !== res.meta.tod){ lastTod = res.meta.tod; engine.setTod(res.meta.tod); }
+}
+function rebuild(asVisitor){
+  if (!res || res.errors.length) return;
+  const fade = $('ks-fade');
+  $('ks-fade-tx').textContent = 'Setting the scene in ' + KS.settings[res.meta.street].label;
+  const go = () => {
+    if (engine){ engine.dispose(); engine = null; }
+    const meta = Object.assign({}, res.meta, {preview:!asVisitor});
+    const intro = document.getElementById('intro'); intro.classList.remove('gone', 'ready', 'broken');
+    if (asVisitor) document.body.classList.remove('live');
+    try { engine = KS.boot(res.products, res.order, meta); }
+    catch (e){ console.error(e); toast('The scene could not start: ' + e.message); building = false; return; }
+    sig = signature(res); lastTod = res.meta.tod;
+    if (!asVisitor){ const [l, b] = insets(); engine.setInsets(l, b, true); if (openCard >= 0) focusCard(openCard); }
+    setTimeout(() => { fade.classList.remove('on'); building = false; }, 160);
+  };
+  building = true;
+  if (!engine){ go(); return; }
+  fade.classList.add('on'); setTimeout(go, 360);
+}
+function focusCard(i){
+  if (!engine || !res) return;
+  const slot = res.slotOf[i];
+  if (slot === undefined){ engine.home(); return; }
+  if (wide()) engine.focus(slot); else engine.look(slot);
+}
+
+/* ── rendering the panel ────────────────────────────────── */
+function renderSteps(){
+  $('ks-steps').innerHTML = STEPS.map((s, i) => '<li class="' + (i === step ? 'now' : i < step ? 'done' : '') + '"><button type="button" data-step="' + i + '"' +
+    (i === step ? ' aria-current="step"' : '') + '><i></i><span>' + s + '</span></button></li>').join('');
+  $('ks-prev').style.visibility = step === 0 ? 'hidden' : '';
+  $('ks-next').textContent = step === 3 ? 'Download your site' : 'Continue';
+  $('ks-next').classList.toggle('amber', step === 3); $('ks-next').classList.toggle('primary', step !== 3);
+}
+function field(label, id, value, o){
+  o = o || {};
+  const tag = o.area ? 'textarea' : 'input';
+  const count = o.max ? '<span class="ks-count" data-count="' + id + '">' + value.length + ' / ' + o.max + '</span>' : '';
+  const ctl = o.area
+    ? '<textarea id="' + id + '" data-bind="' + o.bind + '" rows="' + (o.rows || 4) + '" placeholder="' + esc(o.ph || '') + '">' + esc(value) + '</textarea>'
+    : '<input id="' + id + '" type="' + (o.type || 'text') + '" data-bind="' + o.bind + '" value="' + esc(value) + '" placeholder="' + esc(o.ph || '') + '" autocomplete="off"' + (o.max ? ' data-max="' + o.max + '"' : '') + '>';
+  return '<div class="ks-field"><label class="ks-label" for="' + id + '"><span>' + label + (o.optional ? ' <span class="opt">optional</span>' : '') + '</span>' +
+    (o.best ? '<span class="best">For best results</span>' : count) + '</label>' + ctl +
+    (o.hint ? '<span class="ks-hint">' + o.hint + '</span>' : '') + (o.best && count ? count : '') +
+    '<span class="ks-err" data-err="' + (o.err || '') + '" hidden></span></div>';
+}
+function renderYou(){
+  const n = res && !res.errors.length ? res.order.length : 0, info = KS.settings[state.scene.setting];
+  const auto = !n ? 'Your work on glowing keys, and ' + info.line + '.' : (['No','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve'][n] || n) + ' glowing ' + (n === 1 ? 'key' : 'keys') + ', and ' + info.line + '.';
+  return '<h2 class="ks-q">Whose keyboard is this?</h2>' +
+    '<p class="ks-help">Your name opens the welcome screen and names the browser tab. Everything you type here appears on the board as you go.</p>' +
+    field('Your name, or your studio’s', 'f-name', state.owner.name, {bind:'owner.name', ph:'Mara Lindqvist', err:'owner'}) +
+    field('What you do, in one line', 'f-sub', state.owner.subtitle, {bind:'owner.subtitle', ph:'Landscape architecture in Malmö', best:true, max:80,
+      hint:'Shown under your name. Short and specific reads best: what you make, and where.'}) +
+    field('The welcome line', 'f-line', state.intro.line || '', {bind:'intro.line', ph:auto, optional:true,
+      hint:'Leave it empty and it is written for you from your street and number of projects.'}) +
+    '<div class="ks-sep"></div><p class="ks-note">Built one before? Open the project file you saved, or the site file you downloaded, and carry on where you left off.</p>' +
+    '<div class="ks-row"><label class="ks-btn" for="f-load"><svg viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5M5 15v4h14v-4"/></svg>Open a saved portfolio</label>' +
+    '<input type="file" id="f-load" accept=".json,.html,application/json,text/html" hidden></div>';
+}
+function renderStreet(){
+  const cards = Object.keys(KS.settings).map(k => {
+    const s = KS.settings[k], on = state.scene.setting === k;
+    return '<button type="button" class="ks-place' + (on ? ' on' : '') + '" data-setting="' + k + '"' + (s.ready ? '' : ' disabled') + ' aria-pressed="' + on + '">' +
+      ART[k] + (s.ready ? '' : '<span class="soon">Coming next</span>') + '<span class="meta"><b>' + s.label + '</b><small>' + PLACE_TEXT[k] + '</small></span></button>';
+  }).join('');
+  const t = state.scene.timeOfDay;
+  return '<h2 class="ks-q">Which street runs through your keyboard?</h2>' +
+    '<p class="ks-help">The street inside the board and the world around it come as one place. Pick the one that feels like you; the scene changes behind this panel.</p>' +
+    '<div class="ks-places">' + cards + '</div>' +
+    '<div class="ks-field"><span class="ks-label">What time of day should it open at?</span><div class="ks-chips" role="group" aria-label="Opening time of day">' +
+    TOD_CHOICES.map(([v, l]) => '<button type="button" class="ks-chip' + (t === v ? ' on' : '') + '" data-tod="' + v + '" aria-pressed="' + (t === v) + '">' + l + '</button>').join('') +
+    '</div><span class="ks-hint">Visitors can still slide through the day themselves. Blue hour is when the lamps come on.</span></div>';
+}
+function keyOptions(i){
+  const p = state.projects[i], used = {};
+  state.projects.forEach((q, j) => { if (j !== i && q.key) used[q.key.toLowerCase()] = q.name || 'another project'; });
+  const all = [...KS.usableKeys().ok.values()];
+  const rank = k => /^[A-Z]$/.test(k) ? 0 : /^[0-9]$/.test(k) ? 1 : /^F\d+$/.test(k) ? 2 : 3;
+  all.sort((a, b) => rank(a) - rank(b) || (rank(a) === 2 ? parseInt(a.slice(1)) - parseInt(b.slice(1)) : a.localeCompare(b)));
+  return '<option value="">Automatic' + (res && res.keyOf[i] ? ' (' + res.keyOf[i] + ')' : '') + '</option>' + all.map(k => {
+    const label = KS.keyLabels[k] || k, u = used[k.toLowerCase()];
+    return '<option value="' + label + '"' + (p.key.toLowerCase() === k.toLowerCase() ? ' selected' : '') + (u ? ' disabled' : '') + '>' + label + (u ? ' (used by ' + esc(u) + ')' : '') + '</option>';
+  }).join('');
+}
+function renderCard(p, i){
+  const open = openCard === i, col = p.color || KS.colors[i % KS.colors.length], key = res && res.keyOf ? res.keyOf[i] : '';
+  const head = '<button type="button" class="ks-head" data-card="' + i + '" aria-expanded="' + open + '">' +
+    '<span class="sw" style="background:' + esc(col) + ';color:' + esc(col) + '"></span>' +
+    '<span class="nm' + (p.name.trim() ? '' : ' ph') + '">' + esc(p.name.trim() || 'Untitled project') + '</span>' +
+    '<span class="ks-kbd" data-key="' + i + '">' + esc(key || '—') + '</span><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>';
+  if (!open) return '<div class="ks-card" data-i="' + i + '">' + head + '</div>';
+  const B = k => 'p.' + i + '.' + k;
+  const minis = KS.miniatures.map(m => '<button type="button" class="ks-mini' + ((p.miniature || 'lantern') === m ? ' on' : '') + '" data-mini="' + m + '" title="' + MINI_NAMES[m] + ': ' + MINI_HINT[m] + '" aria-pressed="' + ((p.miniature || 'lantern') === m) + '"><svg viewBox="0 0 24 24">' + ICONS[m] + '</svg><span>' + MINI_NAMES[m] + '</span></button>').join('');
+  const sws = KS.colors.map(c => '<button type="button" class="ks-sw' + (col.toLowerCase() === c.toLowerCase() ? ' on' : '') + '" data-color="' + c + '" style="background:' + c + '" aria-label="Colour ' + c + '"></button>').join('');
+  const facts = p.facts.map((f, k) => '<div class="ks-fact"><input type="text" data-bind="' + B('facts') + '.' + k + '.0" value="' + esc(f[0]) + '" placeholder="Clients" aria-label="Fact ' + (k + 1) + ' label">' +
+    '<input type="text" data-bind="' + B('facts') + '.' + k + '.1" value="' + esc(f[1]) + '" placeholder="40+" aria-label="Fact ' + (k + 1) + ' value"><button type="button" class="ks-x" data-delfact="' + k + '" aria-label="Remove this fact">×</button></div>').join('');
+  return '<div class="ks-card open" data-i="' + i + '" style="--c:' + esc(col) + '">' + head + '<div class="ks-form">' +
+    field('What’s it called?', 'p' + i + '-name', p.name, {bind:B('name'), ph:'Harbour Steps', err:i + ':name'}) +
+    field('In one sentence, what is it?', 'p' + i + '-lede', p.lede, {bind:B('lede'), ph:'A flight of stone steps that turned a car park into the town’s living room.', best:true, max:160}) +
+    field('What kind of thing is it?', 'p' + i + '-cat', p.category, {bind:B('category'), ph:'Client project, product, research, the studio…'}) +
+    '<div class="ks-field"><span class="ks-label">Pick the miniature sealed inside its key</span><div class="ks-minis" role="group" aria-label="Miniature">' + minis + '</div>' +
+    '<span class="ks-hint" id="mini-hint-' + i + '">' + MINI_NAMES[p.miniature || 'lantern'] + ': ' + MINI_HINT[p.miniature || 'lantern'] + '.</span><span class="ks-err" data-err="' + i + ':miniature" hidden></span></div>' +
+    '<div class="ks-field"><span class="ks-label">Its colour</span><div class="ks-swatches">' + sws +
+    '<label class="ks-custom">Custom <input type="color" data-colorpick value="' + esc(/^#[0-9a-f]{6}$/i.test(col) ? col : '#888888') + '" aria-label="Custom colour"></label></div><span class="ks-err" data-err="' + i + ':color" hidden></span></div>' +
+    field('Link', 'p' + i + '-url', p.url, {bind:B('url'), type:'url', ph:'https://', optional:true, err:i + ':url', hint:'Shown as a Visit button in its panel.'}) +
+    field('Tell its story', 'p' + i + '-body', p.body.join('\n\n'), {bind:B('body'), area:true, rows:5, best:true,
+      ph:'What it is and who it is for.\n\nWhy it exists, and what changed because of it.', hint:'Two short paragraphs read best. Leave a blank line between paragraphs.'}) +
+    '<div class="ks-field"><span class="ks-label"><span>Facts worth remembering</span><span class="best">For best results</span></span><div class="ks-facts">' + facts + '</div>' +
+    (p.facts.length < 4 ? '<div><button type="button" class="ks-btn" data-addfact>Add a fact</button></div>' : '') +
+    '<span class="ks-hint">Numbers people remember: clients, users, years, awards. Two or three is plenty.</span></div>' +
+    '<div class="ks-grid2">' + field('Tags', 'p' + i + '-tags', p.tags.join(', '), {bind:B('tags'), ph:'Branding, Retail', optional:true, hint:'Separate with commas.'}) +
+    '<div class="ks-field"><label class="ks-label" for="p' + i + '-key">Its key</label><select id="p' + i + '-key" data-bind="' + B('key') + '">' + keyOptions(i) + '</select>' +
+    '<span class="ks-hint">Visitors can press it on their own keyboard.</span><span class="ks-err" data-err="' + i + ':key" hidden></span></div></div>' +
+    '<div class="ks-actions">' +
+    '<button type="button" class="ks-btn" data-move="-1"' + (i === 0 ? ' disabled' : '') + '>Move up</button>' +
+    '<button type="button" class="ks-btn" data-move="1"' + (i === state.projects.length - 1 ? ' disabled' : '') + '>Move down</button>' +
+    (pendingRemove === i
+      ? '<span class="ks-confirm">Remove this project? <button type="button" class="ks-btn danger" data-remove="yes">Remove</button><button type="button" class="ks-btn" data-remove="no">Keep it</button></span>'
+      : '<button type="button" class="ks-btn danger" data-remove="ask">Remove</button>') +
+    '</div></div></div>';
+}
+function renderWork(){
+  const n = state.projects.length;
+  let html = '<h2 class="ks-q">What should the glowing keys open?</h2>' +
+    '<p class="ks-help">Each project gets its own key, a colour, and a small sculpture sealed inside the keycap. Three to seven reads best; the board holds ' + KS.max + '.</p>';
+  if (!n) return html + '<div class="ks-empty"><p>Add the first thing you want people to find: a product, a client project, a piece of research, your studio itself.</p>' +
+    '<div class="ks-row"><button type="button" class="ks-btn primary" data-add>Add your first project</button><button type="button" class="ks-link" data-example>Or start from an example</button></div></div>';
+  html += '<div class="ks-cards">' + state.projects.map(renderCard).join('') + '</div>';
+  html += '<div class="ks-row" style="margin-top:14px"><button type="button" class="ks-btn" data-add' + (n >= KS.max ? ' disabled' : '') + '>' +
+    '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>' + (n >= KS.max ? 'The board is full' : 'Add another project') + '</button></div>';
+  return html;
+}
+function checklist(){
+  const items = [], p = state.projects;
+  items.push(state.owner.name.trim() ? ['', 'Your name: <b>' + esc(state.owner.name.trim()) + '</b>'] : ['bad', 'Add <b>your name</b> on the first step.']);
+  items.push(['', 'Your street: <b>' + KS.settings[state.scene.setting].label + '</b>, opening at ' + TOD_CHOICES.find(t => t[0] === state.scene.timeOfDay)[1].toLowerCase() + '.']);
+  const named = p.filter(q => q.name.trim()).length;
+  if (!p.length) items.push(['bad', 'Add <b>at least one project</b> for the keys to open.']);
+  else items.push([named < p.length ? 'bad' : '', '<b>' + named + '</b> ' + (named === 1 ? 'project' : 'projects') + ' on the board' + (named < p.length ? '; ' + (p.length - named) + ' still need a name.' : '.')]);
+  const fieldsBad = res && res.fields ? res.fields.length : 0;
+  if (fieldsBad) items.push(['bad', fieldsBad + ' ' + (fieldsBad === 1 ? 'detail needs' : 'details need') + ' fixing on the Your work step.']);
+  const noStory = p.filter(q => q.name.trim() && !q.body.join('').trim()).length, noLede = p.filter(q => q.name.trim() && !q.lede.trim()).length;
+  const noFacts = p.filter(q => q.name.trim() && !q.facts.some(f => f[0].trim() && f[1].trim())).length;
+  if (noLede) items.push(['warn', noLede + ' ' + (noLede === 1 ? 'project has' : 'projects have') + ' no one-line summary yet.']);
+  if (noStory) items.push(['warn', noStory + ' ' + (noStory === 1 ? 'project has' : 'projects have') + ' no story yet.']);
+  if (noFacts) items.push(['warn', noFacts + ' ' + (noFacts === 1 ? 'project has' : 'projects have') + ' no facts yet.']);
+  return items;
+}
+function ready(){ return state.owner.name.trim() && state.projects.length && state.projects.every(q => q.name.trim()) && !(res && res.fields && res.fields.length); }
+function renderPublish(){
+  const items = checklist(), ok = ready();
+  return '<h2 class="ks-q">' + (ok ? 'Your keyboard is ready.' : 'Nearly there.') + '</h2>' +
+    '<p class="ks-help">' + (ok ? 'Download it as a single file and put it on any web host. Amber notes are optional polish.' : 'Fix the red items below, then download.') + '</p>' +
+    '<ul class="ks-check">' + items.map(([c, t]) => '<li class="' + c + '"><span>' + t + '</span></li>').join('') + '</ul>' +
+    '<div class="ks-big">' +
+    '<button type="button" class="ks-btn amber" data-dl="site"' + (ok ? '' : ' disabled') + '><span>Download your site<small>index.html: one file with everything inside it</small></span></button>' +
+    '<button type="button" class="ks-btn" data-dl="json"><span>Save a project file<small>portfolio.json, to reopen and edit here later</small></span></button>' +
+    '<button type="button" class="ks-btn" data-visitor' + (ok ? '' : ' disabled') + '><span>See it as a visitor will<small>The full welcome screen, without this panel</small></span></button>' +
+    '</div><div class="ks-sep"></div>' +
+    '<p class="ks-note"><b>Putting it online.</b> The site is one file named index.html, so any static host works. With Vercel’s command-line tool, from the folder holding the file:</p>' +
+    '<div class="ks-code">npm install -g vercel\nvercel --prod</div>' +
+    '<p class="ks-note">On GitHub Pages, add the file to a repository and turn on Pages in its settings. To change anything later, open your project file or the site file on the first step of this studio.</p>' +
+    '<div class="ks-sep"></div>' +
+    (confirmReset
+      ? '<div class="ks-confirm">Clear everything and start over? <button type="button" class="ks-btn danger" data-reset="yes">Start over</button><button type="button" class="ks-btn" data-reset="no">Cancel</button></div>'
+      : '<button type="button" class="ks-link" data-reset="ask">Start over with an empty keyboard</button>');
+}
+function render(keepScroll){
+  const body = $('ks-body'), top = body.scrollTop;
+  renderSteps();
+  body.innerHTML = [renderYou, renderStreet, renderWork, renderPublish][step]();
+  body.scrollTop = keepScroll ? top : 0;
+  markErrors();
+}
+function markErrors(){
+  document.querySelectorAll('#ks [data-err]').forEach(el => { el.hidden = true; el.textContent = ''; });
+  document.querySelectorAll('#ks .ks-card').forEach(c => c.classList.remove('bad'));
+  if (!res) return;
+  for (const f of res.fields || []){
+    const el = document.querySelector('#ks [data-err="' + f.index + ':' + f.field + '"]');
+    if (el){ el.hidden = false; el.textContent = f.message.replace(/^Project \d+( \([^)]*\))?: ?/, ''); }
+    const card = document.querySelector('#ks .ks-card[data-i="' + f.index + '"]'); if (card) card.classList.add('bad');
+  }
+  if (res.keyOf) document.querySelectorAll('#ks [data-key]').forEach(el => { el.textContent = res.keyOf[el.dataset.key] || '—'; });
+}
+
+/* ── editing ────────────────────────────────────────────── */
+function setPath(path, v){
+  const parts = path.split('.');
+  if (parts[0] === 'p'){
+    const p = state.projects[+parts[1]], k = parts[2];
+    if (!p) return;
+    if (k === 'body') p.body = v.split(/\n\s*\n/);
+    else if (k === 'tags') p.tags = v.split(',');
+    else if (k === 'facts') p.facts[+parts[3]][+parts[4]] = v;
+    else p[k] = v;
+    if (k === 'name'){ const nm = document.querySelector('#ks .ks-card[data-i="' + parts[1] + '"] .nm'); if (nm){ nm.textContent = v.trim() || 'Untitled project'; nm.classList.toggle('ph', !v.trim()); } }
+    return;
+  }
+  let o = state; for (let i = 0; i < parts.length - 1; i++) o = o[parts[i]] = o[parts[i]] || {};
+  o[parts[parts.length - 1]] = v;
+}
+function changed(){ save(); refresh(); }
+function addProject(){
+  if (state.projects.length >= KS.max) return;
+  const used = new Set(state.projects.map(p => (p.miniature || '').toLowerCase()));
+  const mini = KS.miniatures.find(m => !used.has(m)) || 'lantern';
+  state.projects.push({name:'', lede:'', category:'', miniature:mini, color:KS.colors[state.projects.length % KS.colors.length], url:'', key:'', body:[], facts:[], tags:[]});
+  openCard = state.projects.length - 1; pendingRemove = -1;
+  render(true); changed();
+  const el = $('p' + openCard + '-name'); if (el) el.focus({preventScroll:false});
+}
+function onClick(e){
+  const t = e.target.closest('button,[data-step]'); if (!t || !$('ks').contains(t)) return;
+  const d = t.dataset, cardEl = t.closest('.ks-card'), i = cardEl ? +cardEl.dataset.i : -1;
+  if (d.step !== undefined){ go(+d.step); return; }
+  if (d.setting){ state.scene.setting = d.setting; render(true); changed(); return; }
+  if (d.tod){ state.scene.timeOfDay = d.tod; document.querySelectorAll('#ks [data-tod]').forEach(b => { b.classList.toggle('on', b === t); b.setAttribute('aria-pressed', b === t); }); changed(); return; }
+  if (d.card !== undefined){ const c = +d.card; openCard = openCard === c ? -1 : c; pendingRemove = -1; render(true); if (openCard >= 0) focusCard(openCard); else if (engine){ engine.release && engine.release(); engine.home(); } return; }
+  if (d.add !== undefined){ addProject(); return; }
+  if (d.example !== undefined){
+    const ex = normalize(Object.assign({}, EXAMPLE, {scene:state.scene}));
+    if (!state.owner.name.trim()){ state.owner = ex.owner; state.intro = ex.intro; }
+    state.projects = ex.projects; openCard = -1; render(); changed(); toast('Example projects added. Replace them with your own.'); return;
+  }
+  if (d.mini && i >= 0){ state.projects[i].miniature = d.mini; render(true); changed(); return; }
+  if (d.color && i >= 0){ state.projects[i].color = d.color; cardEl.querySelectorAll('.ks-sw').forEach(s => s.classList.toggle('on', s === t)); cardEl.style.setProperty('--c', d.color); const sw = cardEl.querySelector('.ks-head .sw'); sw.style.background = sw.style.color = d.color; changed(); return; }
+  if (d.addfact !== undefined && i >= 0){ state.projects[i].facts.push(['', '']); render(true); changed(); return; }
+  if (d.delfact !== undefined && i >= 0){ state.projects[i].facts.splice(+d.delfact, 1); render(true); changed(); return; }
+  if (d.move && i >= 0){
+    const j = i + (+d.move); if (j < 0 || j >= state.projects.length) return;
+    const a = state.projects; [a[i], a[j]] = [a[j], a[i]]; openCard = j; render(true); changed(); return;
+  }
+  if (d.remove && i >= 0){
+    if (d.remove === 'ask'){ pendingRemove = i; render(true); return; }
+    if (d.remove === 'no'){ pendingRemove = -1; render(true); return; }
+    state.projects.splice(i, 1); pendingRemove = -1; openCard = -1; render(true); changed(); if (engine) engine.home(); return;
+  }
+  if (d.dl){ download(d.dl); return; }
+  if (d.visitor !== undefined){ showVisitor(); return; }
+  if (d.reset){
+    if (d.reset === 'ask'){ confirmReset = true; render(true); return; }
+    if (d.reset === 'no'){ confirmReset = false; render(true); return; }
+    confirmReset = false; state = blank(); openCard = -1; step = 0; render(); changed(); toast('Started over.'); return;
+  }
+}
+function onInput(e){
+  const t = e.target;
+  if (t.dataset.colorpick !== undefined){
+    const cardEl = t.closest('.ks-card'), i = +cardEl.dataset.i;
+    state.projects[i].color = t.value.toUpperCase(); cardEl.querySelectorAll('.ks-sw').forEach(s => s.classList.remove('on'));
+    cardEl.style.setProperty('--c', t.value); const sw = cardEl.querySelector('.ks-head .sw'); sw.style.background = sw.style.color = t.value;
+    changed(); return;
+  }
+  if (!t.dataset.bind) return;
+  setPath(t.dataset.bind, t.value);
+  const c = document.querySelector('#ks [data-count="' + t.id + '"]');
+  if (c){ const max = +(t.dataset.max || (t.id.endsWith('lede') ? 160 : 80)); c.textContent = t.value.length + ' / ' + max; c.classList.toggle('over', t.value.length > max); }
+  if (t.tagName === 'SELECT'){ render(true); }
+  changed();
+}
+function onChange(e){
+  const t = e.target;
+  /* a name settles its key: while typing, the key follows the first letter; once the field
+     is left, it stays put so later renames never move the project around the board */
+  const m = t.dataset && t.dataset.bind && t.dataset.bind.match(/^p\.(\d+)\.name$/);
+  if (m){
+    const i = +m[1], p = state.projects[i];
+    if (p && !p.key && p.name.trim() && res && res.keyOf && res.keyOf[i]){ p.key = res.keyOf[i]; save(); }
+    return;
+  }
+  if (t.id !== 'f-load' || !t.files || !t.files[0]) return;
+  const file = t.files[0], fr = new FileReader();
+  fr.onload = () => {
+    let text = String(fr.result), raw = null;
+    try {
+      if (/<html|<script/i.test(text)){
+        const m = text.match(/<script type="application\/json" id="portfolio">([\s\S]*?)<\/script>/);
+        if (!m || !m[1].trim()) throw new Error('That file has no portfolio inside it.');
+        text = m[1].replace(/<\\\//g, '</');
+      }
+      raw = JSON.parse(text);
+    } catch (err){ toast(err.message.indexOf('portfolio') >= 0 ? err.message : 'That file could not be read as a portfolio.'); return; }
+    state = normalize(raw); openCard = -1; render(); changed(); toast('Opened ' + file.name + '.');
+  };
+  fr.readAsText(file);
+}
+function go(n){
+  step = Math.max(0, Math.min(3, n)); pendingRemove = -1; confirmReset = false;
+  if (step !== 2 && openCard >= 0){ openCard = -1; if (engine){ engine.release && engine.release(); engine.home(); } }
+  render(); save();
+}
+
+/* ── export ─────────────────────────────────────────────── */
+function siteHTML(){
+  const json = JSON.stringify(portfolio(), null, 2).replace(/<\//g, '<\\/');
+  /* the studio block is the last thing in the page, so the site is everything before it */
+  const at = PRISTINE.indexOf(MARK);
+  let h = window.KS_TEMPLATE ? PRISTINE : (at > 0 ? PRISTINE.slice(0, at) : PRISTINE) + '</body>\n</html>\n';
+  h = h.replace(/(<script type="application\/json" id="portfolio">)[\s\S]*?(<\/script>)/, (m, a, b) => a + '\n' + json + '\n' + b);
+  return h;
+}
+async function saveFile(name, text, mime){
+  /* inside Claude the page asks the viewer to confirm the save; hosted anywhere else, a plain download */
+  if (window.claude && typeof window.claude.use === 'function'){
+    let dl = null;
+    try { dl = await window.claude.use('downloads'); } catch (_){}
+    if (!dl){ toast('Downloads are not available in this view.'); return false; }
+    try { await dl.save({filename:name, data:text}); return true; }
+    catch (err){
+      const code = err && err.code;
+      if (code === 'declined') return false;
+      if (code === 'rate_limited') toast('A save is already waiting for your answer.');
+      else toast('The download did not start' + (err && err.message ? ': ' + err.message : '.'));
+      return false;
+    }
+  }
+  if (!window.URL || !URL.createObjectURL){ toast('This browser cannot save files from here.'); return false; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:mime})); a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  return true;
+}
+async function download(kind){
+  if (kind === 'site'){
+    if (!ready()){ toast('Fix the red items first.'); return; }
+    if (await saveFile('index.html', siteHTML(), 'text/html')) toast('Downloaded index.html.');
+  } else {
+    if (await saveFile('portfolio.json', JSON.stringify(portfolio(), null, 2), 'application/json')) toast('Saved portfolio.json.');
+  }
+}
+function showVisitor(){
+  visitor = true; document.body.classList.add('visitor');
+  if (engine) engine.setInsets(0, 0);
+  rebuild(true);
+}
+function hideVisitor(){
+  visitor = false; document.body.classList.remove('visitor');
+  document.body.classList.add('live');
+  rebuild(false);
+}
+
+/* ── start ──────────────────────────────────────────────── */
+window.KeystreetStudio = {
+  init(K){
+    KS = K;
+    const saved = restore();
+    if (saved){ state = saved.state; step = Math.min(3, saved.step); }
+    else state = blank();
+    document.body.classList.add('studio', 'live');
+    $('ks').hidden = false;
+    $('ks').addEventListener('click', onClick);
+    $('ks').addEventListener('input', onInput);
+    $('ks').addEventListener('change', onChange);
+    $('ks-prev').addEventListener('click', () => go(step - 1));
+    $('ks-next').addEventListener('click', () => { if (step === 3) download('site'); else go(step + 1); });
+    $('ks-back').addEventListener('click', hideVisitor);
+    let rz = 0;
+    addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (engine && !visitor){ const [l, b] = insets(); engine.setInsets(l, b); } }, 200); });
+    res = KS.validate(portfolio(), {preview:true});
+    render();
+    refresh();
+  },
+  /* for tests and tooling */
+  _debug(){ return {state, res, step, openCard, engine, siteHTML, portfolio}; }
+};
+})();
+</script>
+<!--/KS:STUDIO-->

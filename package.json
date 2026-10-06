@@ -1,0 +1,17 @@
+{
+  "name": "keystreet",
+  "version": "0.1.0",
+  "description": "Build a 3D keyboard portfolio in your browser: pick a street, add your work, download one HTML file.",
+  "license": "MIT",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "npm run build && node test/harness.cjs examples/*.html && node test/studio.test.cjs",
+    "test:shaders": "node test/glsl.cjs examples/mara-kyoto.html"
+  },
+  "devDependencies": {
+    "jsdom": "^22.1.0",
+    "three": "0.128.0"
+  }
+}

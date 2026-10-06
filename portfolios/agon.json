@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "owner": {
+    "name": "Agon Aliu",
+    "subtitle": "Products built at Silicode",
+    "title": "Agon Aliu | Silicode",
+    "description": "An explorable keyboard on a terrace above the Santorini caldera, with a small street running through it. Seven glowing keys open the products Agon Aliu has built at Silicode."
+  },
+  "intro": {
+    "kicker": "Silicode portfolio",
+    "line": "Seven glowing keys, and a small street above the caldera."
+  },
+  "scene": {
+    "theme": "keyboard",
+    "street": "santorini",
+    "timeOfDay": "blue"
+  },
+  "projects": [
+    {
+      "name": "Silicode",
+      "key": "S",
+      "category": "The studio",
+      "color": "#E5865A",
+      "miniature": "forge",
+      "lede": "A two-country software studio that ships its own products.",
+      "body": [
+        "Silicode is registered in Kosovo and Switzerland. It builds AI-powered SaaS and takes on contract work, and every other glowing key on this board came out of it.",
+        "The background is finance, not computer science: advisory work at Deloitte and KPMG, ProCredit Bank and the Central Bank of Kosovo, and an MBA. That is why most of these products start from a spreadsheet problem rather than a framework."
+      ],
+      "facts": [
+        [
+          "Founder",
+          "Agon Aliu"
+        ],
+        [
+          "Based in",
+          "Kosovo and Switzerland"
+        ],
+        [
+          "Practice",
+          "SaaS and contract work"
+        ]
+      ],
+      "tags": [
+        "Product",
+        "Architecture",
+        "Strategy",
+        "Finance"
+      ]
+    },
+    {
+      "name": "2peek",
+      "key": "2",
+      "category": "Brand tooling",
+      "color": "#9A7DEB",
+      "url": "https://wove.site",
+      "miniature": "palette",
+      "lede": "Decode any website’s brand identity in seconds.",
+      "body": [
+        "Paste a URL and get the branding back, broken out: colours, fonts, logos, spacing and components. It is the job you would otherwise do by hand with dev tools open and a scratch file full of hex codes."
+      ],
+      "facts": [
+        [
+          "Input",
+          "Any URL"
+        ],
+        [
+          "Output",
+          "A full brand breakdown"
+        ],
+        [
+          "Lives at",
+          "wove.site"
+        ]
+      ],
+      "tags": [
+        "Colours",
+        "Typography",
+        "Logos",
+        "Components"
+      ]
+    },
+    {
+      "name": "revaluatR",
+      "key": "R",
+      "category": "Real estate valuation",
+      "color": "#45A87C",
+      "url": "https://revaluatr.com",
+      "miniature": "blueprint",
+      "lede": "What a German commercial building is worth, and why.",
+      "body": [
+        "Institutional-grade valuation for German commercial real estate. It began life as a Deloitte Excel model and is now a working product: FastAPI and PostgreSQL underneath, React on top, Stripe at the gate and a report at the end.",
+        "One valuation, one price. The waitlist is open."
+      ],
+      "facts": [
+        [
+          "Market",
+          "Germany"
+        ],
+        [
+          "Price",
+          "€299 per valuation"
+        ],
+        [
+          "Stage",
+          "Working MVP, waitlist open"
+        ]
+      ],
+      "tags": [
+        "FastAPI",
+        "PostgreSQL",
+        "React",
+        "Stripe"
+      ]
+    },
+    {
+      "name": "Trezio",
+      "key": "T",
+      "category": "Personal knowledge",
+      "color": "#EAAE45",
+      "url": "https://trezio.app",
+      "miniature": "vault",
+      "lede": "Everything you meant to come back to, in one place.",
+      "body": [
+        "Links, notes, screenshots and voice memos, with the voice ones transcribed automatically. AI writes the summaries and applies the tags, so what you save stays findable instead of rotting in a folder called “read later”.",
+        "An encrypted password vault, public sharing and Google Drive sync sit alongside. There is a free plan, and it does not ask for a card."
+      ],
+      "facts": [
+        [
+          "Captures",
+          "Links, notes, images, voice"
+        ],
+        [
+          "Vault",
+          "Encrypted"
+        ],
+        [
+          "Starts",
+          "Free, no card"
+        ]
+      ],
+      "tags": [
+        "AI summaries",
+        "Smart tags",
+        "Transcription",
+        "Drive sync"
+      ]
+    },
+    {
+      "name": "Orbitale",
+      "key": "O",
+      "category": "WebGL for the classroom",
+      "color": "#6585EA",
+      "url": "https://theorbitale.com",
+      "miniature": "orbit",
+      "lede": "Your portal to space.",
+      "body": [
+        "Explore the Solar System, step inside the ISS, and watch the origins of our world unfold. It grew out of a solar-system teaching app and became something wider.",
+        "React Three Fiber and TypeScript, Zustand for state, custom shaders and a cinematic opening, written in English and Albanian so it works in a Kosovar classroom."
+      ],
+      "facts": [
+        [
+          "Built with",
+          "React Three Fiber"
+        ],
+        [
+          "Audience",
+          "Students and teachers"
+        ],
+        [
+          "Languages",
+          "English and Albanian"
+        ]
+      ],
+      "tags": [
+        "WebGL",
+        "GLSL",
+        "TypeScript",
+        "Bilingual"
+      ]
+    },
+    {
+      "name": "OpenPaga",
+      "key": "P",
+      "category": "Payroll for Kosovo",
+      "color": "#33AACB",
+      "url": "https://openpaga.com",
+      "miniature": "ledger",
+      "lede": "Payroll in Kosovo, from Excel to autopilot.",
+      "body": [
+        "Payroll, Trust, ATK filing, payslips and bank exports in one monthly flow. It produces the exact XML the Kosovo Tax Administration expects, so an EDI declaration is a download rather than an afternoon.",
+        "Pricing is flat per company, not per employee: free up to three people, €31 a month up to ten."
+      ],
+      "facts": [
+        [
+          "Companies",
+          "13 and counting"
+        ],
+        [
+          "Payslips issued",
+          "3,520+"
+        ],
+        [
+          "Interface",
+          "Albanian and English"
+        ]
+      ],
+      "tags": [
+        "ATK and EDI XML",
+        "Trust 5 + 5",
+        "PDF payslips",
+        "Bank exports"
+      ]
+    },
+    {
+      "name": "StackNest",
+      "key": "Home",
+      "category": "The archive",
+      "color": "#DE5C94",
+      "url": "https://stacknest.org",
+      "miniature": "house",
+      "lede": "A living record of everything shipped.",
+      "body": [
+        "The working archive of products built through Silicode, kept across five strands: knowledge, operations, decisions, WebGL and energy. It sits on the home key, which felt right."
+      ],
+      "facts": [
+        [
+          "Strands",
+          "Five"
+        ],
+        [
+          "Holds",
+          "Every key on this board"
+        ]
+      ],
+      "tags": [
+        "Knowledge",
+        "Operations",
+        "Decisions",
+        "WebGL",
+        "Energy"
+      ]
+    }
+  ]
+}
