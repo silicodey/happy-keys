@@ -2,7 +2,7 @@
 
 **A portfolio you explore like a miniature world.** Your projects glow on the keys of a 3D mechanical keyboard, and a small street runs through the middle of the board, with lamps, cafés and people. Visitors drag to look around, press a key on their own keyboard (or click it), and that project opens.
 
-**[Open the studio →](https://silicodey.github.io/happy-keys/)**  ·  Examples: [Kyoto](https://silicodey.github.io/happy-keys/examples/mara-kyoto.html) · [Santorini](https://silicodey.github.io/happy-keys/examples/mara-santorini.html) · [Silicode](https://silicodey.github.io/happy-keys/examples/agon.html)
+**[Open the studio →](https://silicodey.github.io/happy-keys/)**  ·  Examples: [Kyoto](https://silicodey.github.io/happy-keys/examples/mara-kyoto.html) · [Santorini](https://silicodey.github.io/happy-keys/examples/mara-santorini.html) · [Brooklyn](https://silicodey.github.io/happy-keys/examples/mara-brooklyn.html) · [Lofoten](https://silicodey.github.io/happy-keys/examples/mara-lofoten.html) · [Silicode](https://silicodey.github.io/happy-keys/examples/agon.html)
 
 ## Make your own
 
@@ -26,8 +26,8 @@ To change your site later, open the studio and use **Open a saved portfolio** to
 | --- | --- |
 | **Santorini** | Whitewashed terraces above the caldera, blue domes, a cruise ship crossing at dusk, church bells and the sea. |
 | **Kyoto** | A temple stage over the city, a lantern lane climbing to a pagoda, falling maple leaves, a temple bell and wind chimes. |
-| Brooklyn | Coming next. |
-| Lofoten | Coming next. |
+| **Brooklyn** | A rooftop over the river with the skyline and a suspension bridge beyond. An elevated train loops the keyboard, the case is riveted steel, and after dark keys light up and go out like apartment windows. |
+| **Lofoten** | A fishing quay under granite peaks, red cabins along the fjord, the northern lights at night. Snow settles on the keys and puffs off when you type, icicles hang from the case, and the aurora rolls across the keys. |
 
 Each street is one complete place: the lane inside the board, the world around it, the light through the day, the keyboard's materials and its sound.
 
@@ -54,8 +54,10 @@ src/
   loader.js        reads and validates the portfolio JSON, then boots the engine
   engine/          the 3D scene, in the order it is concatenated:
     01-renderer … 03-sky                  renderer, materials, time of day, sky
-    04-santorini-world, 05-kyoto          each street's world and lane
+    04-santorini-world, 05-kyoto,
+    05b-brooklyn, 05c-lofoten             each street's world, platform and lane
     07-keyboard                           case, keys, the resin caps with their miniatures
+    07b-keyfx                             what a street does to the keyboard itself (train, snow, glow)
     10-light-and-post, 11-sound           lighting, bloom, synthesised audio
     12-camera … 14-entrance-loop-teardown camera, input, main loop, the handle the studio drives
   studio.html      the guided builder; left out of exported sites
@@ -94,7 +96,7 @@ You never need to write this by hand, but it is plain JSON if you prefer to:
 }
 ```
 
-- `setting`: `santorini` or `kyoto`.
+- `setting`: `santorini`, `kyoto`, `brooklyn` or `lofoten`.
 - `timeOfDay`: `afternoon`, `golden`, `blue` or `night`; visitors can still slide through the day.
 - `miniature`: `house`, `vault`, `forge`, `orbit`, `ledger`, `blueprint`, `palette`, `telescope`, `compass`, `loom`, `ship`, `sapling`, `gears`, `scales` or `lantern`.
 - Up to 12 projects. `key` is optional; leave it out and a free key is chosen from the project's name.

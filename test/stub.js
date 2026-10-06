@@ -36,7 +36,7 @@
       scene.traverse(o => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
         for (const m of ms) if (m.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile && !m.__ok && m.type === 'MeshStandardMaterial'){
           const sh = {vertexShader:THREE.ShaderLib.standard.vertexShader, fragmentShader:'', uniforms:{}};
-          m.onBeforeCompile(sh, this); if (!/aUV/.test(sh.vertexShader)) throw new Error('legend shader patch failed');
+          m.onBeforeCompile(sh, this); if (!/aUV|aGlow/.test(sh.vertexShader)) throw new Error('material shader patch failed');
           m.__ok = true; } });
     }
     setRenderTarget(rt){ this._rt = rt; } getRenderTarget(){ return this._rt; }

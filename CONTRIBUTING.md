@@ -18,11 +18,12 @@ A street is one complete place, so a new one touches four spots:
 
 1. **`src/loader.js`**: add it to `SETTINGS_INFO` with a label, a one-line description and `ready: true`.
 2. **`src/engine/02-settings.js`**: add its entry to `SETTING_DATA`, covering the light at four times of day, fog, the keyboard's palette, people's clothes and the sound profile.
-3. **A new engine file** (for example `src/engine/05-brooklyn.js`) with three functions, following `05-kyoto.js`:
+3. **A new engine file** (for example `src/engine/05d-havana.js`) with three functions, following `05-kyoto.js`:
    - `worldX()`: everything outside the board. Returns `{zoom, applyTOD(P), animate()}`.
    - `platformX()`: the surface the keyboard rests on. Returns `{slab, mat, warmPos, applyTOD(), animate(dt)}`.
    - `streetX()`: the lane inside the board. It must stay inside the lane (`LANE_C`, `LANE_HW`) and below the key tops. Returns `{merged, applyTOD(), animate()}`.
-4. **The dispatch lines** in `06-birds-and-world-choice.js` and `09-people.js`, plus the card art and text in `src/studio.html` (`ART` and `PLACE_TEXT`).
+4. **The `PLACES` table** in `06-birds-and-world-choice.js`, the intro camera in `12-camera-and-picking.js`, plus the card art, text and best hour in `src/studio.html` (`ART`, `PLACE_TEXT`, `BEST_HOUR`).
+5. **Optionally, something the street does to the keyboard itself** in `07b-keyfx.js`: per-key glow, things on the keys, things around the case. This is what makes a street feel like more than a palette.
 
 Keep the draw-call budget near the existing streets: merge static geometry by material (`mergeByMaterial`, `mergedAt`) and use instancing for anything repeated. The harness prints the budget.
 

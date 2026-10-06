@@ -189,6 +189,7 @@ const PRISTINE = window.KS_TEMPLATE || '<!DOCTYPE html>\n' + document.documentEl
 const STORE = 'keystreet.draft.v1';
 const MARK = '<' + '!--KS:STUDIO--' + '>';
 const STEPS = ['You', 'Street', 'Your work', 'Publish'];
+const BEST_HOUR = {santorini:'golden', kyoto:'blue', brooklyn:'blue', lofoten:'night'};
 const TOD_CHOICES = [['afternoon', 'Afternoon'], ['golden', 'Golden hour'], ['blue', 'Blue hour'], ['night', 'Night']];
 const MINI_NAMES = {house:'Lit house', vault:'Vault', forge:'Forge', orbit:'Planet', ledger:'Ledger', blueprint:'Blueprint',
   palette:'Palette', telescope:'Telescope', compass:'Compass', loom:'Loom', ship:'Ship', sapling:'Sapling', gears:'Gears', scales:'Scales', lantern:'Lantern'};
@@ -222,8 +223,8 @@ const ART = {
 const PLACE_TEXT = {
   santorini:'Whitewashed terraces above the caldera, a cruise ship crossing at dusk.',
   kyoto:'A temple stage over the city, a lantern lane climbing to a pagoda, maple leaves falling.',
-  brooklyn:'Brownstones and fire escapes on a rooftop facing the skyline.',
-  lofoten:'Red fishing cabins on a harbour lane, northern lights at night.'
+  brooklyn:'A rooftop over the river and the skyline. A train loops the board; keys light up like windows.',
+  lofoten:'A fishing quay under granite peaks. Snow settles on the keys, and the aurora rolls across them.'
 };
 const EXAMPLE = {owner:{name:'Mara Lindqvist', subtitle:'Landscape architecture · an example portfolio'}, intro:{kicker:'Studio Lindqvist'},
   projects:[
@@ -527,7 +528,11 @@ function onClick(e){
   const t = e.target.closest('button,[data-step]'); if (!t || !$('ks').contains(t)) return;
   const d = t.dataset, cardEl = t.closest('.ks-card'), i = cardEl ? +cardEl.dataset.i : -1;
   if (d.step !== undefined){ go(+d.step); return; }
-  if (d.setting){ state.scene.setting = d.setting; render(true); changed(); return; }
+  if (d.setting){
+    /* each street opens at its best hour; the time chips below can still change it */
+    if (state.scene.setting !== d.setting) state.scene.timeOfDay = BEST_HOUR[d.setting] || state.scene.timeOfDay;
+    state.scene.setting = d.setting; render(true); changed(); return;
+  }
   if (d.tod){ state.scene.timeOfDay = d.tod; document.querySelectorAll('#ks [data-tod]').forEach(b => { b.classList.toggle('on', b === t); b.setAttribute('aria-pressed', b === t); }); changed(); return; }
   if (d.card !== undefined){ const c = +d.card; openCard = openCard === c ? -1 : c; pendingRemove = -1; render(true); if (openCard >= 0) focusCard(openCard); else if (engine){ engine.release && engine.release(); engine.home(); } return; }
   if (d.add !== undefined){ addProject(); return; }

@@ -61,6 +61,7 @@ const SFX = (function(PROF){
     /* the bed: the sea far below, or wind in the trees over a distant city */
     const lp = ctx.createBiquadFilter();
     if (PROF.bed === 'valley'){ lp.type = 'bandpass'; lp.frequency.value = 900; lp.Q.value = 0.45; }
+    else if (PROF.bed === 'city'){ lp.type = 'lowpass'; lp.frequency.value = 240; lp.Q.value = 0.5; }
     else { lp.type = 'lowpass'; lp.frequency.value = 460; lp.Q.value = 0.3; }
     seaG = ctx.createGain(); seaG.gain.value = 0; loopNoise(1).connect(lp); lp.connect(seaG); seaG.connect(out);
     for (const [f, a] of [[0.07, 0.016], [0.113, 0.01]]){
@@ -165,7 +166,59 @@ const SFX = (function(PROF){
     const bp = ctx.createBiquadFilter(); bp.type = 'lowpass'; bp.frequency.value = 600;
     const g = ctx.createGain(); env(g, t, 0.08, 0.002, 0.12); s.connect(bp); bp.connect(g); g.connect(out); s.start(t, Math.random(), 0.15);
   }
-  function bell(){ if (PROF.bell === 'bonsho') bonsho(); else churchBell(); }
+  function bell(){ if (PROF.bell === 'bonsho') bonsho(); else if (PROF.bell === 'buoy') buoy(); else churchBell(); }
+  function buoy(){
+    /* a harbour bell on a buoy: two uneven clangs as the swell rocks it */
+    if (!live()) return;
+    const t0 = ctx.currentTime + 0.01;
+    for (const [dt, a] of [[0, 1], [0.62, 0.7], [1.5, 0.45]]){
+      const t = t0 + dt, f = 432;
+      for (const [r, g, d] of [[1, 1, 3.2], [2.76, 0.5, 1.8], [5.4, 0.25, 0.9], [0.5, 0.3, 2.6]]){
+        const n = tone(f*r, t, g*0.045*a, d, out);
+        const w = ctx.createGain(); w.gain.value = 0.6; n.connect(w); w.connect(wet);
+      }
+    }
+  }
+  function gulls(){
+    /* herring gulls: a few falling cries far off across the water */
+    const t0 = ctx.currentTime + 0.05, P = panNode(rr(-0.7, 0.7)); P.connect(out);
+    const w = ctx.createGain(); w.gain.value = 0.5; P.connect(w); w.connect(wet);
+    for (let k = 0, n = 2 + ((Math.random()*3)|0); k < n; k++){
+      const t = t0 + k*rr(0.28, 0.42), f = rr(1150, 1400);
+      const o = ctx.createOscillator(); o.type = 'sawtooth';
+      o.frequency.setValueAtTime(f*0.8, t); o.frequency.linearRampToValueAtTime(f*1.15, t + 0.06); o.frequency.exponentialRampToValueAtTime(f*0.62, t + 0.3);
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 2.2;
+      const g = ctx.createGain(); env(g, t, 0.018, 0.02, 0.32);
+      o.connect(bp); bp.connect(g); g.connect(P); o.start(t); o.stop(t + 0.36);
+    }
+  }
+  function subway(){
+    /* a train passing somewhere under the street: a slow swell of low rumble and rail clatter */
+    const t = ctx.currentTime + 0.05, dur = rr(5, 7);
+    const s = loopNoise(0.5), lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 160; lp.Q.value = 0.8;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.11, t + dur*0.45); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(lp); lp.connect(g); g.connect(out); s.stop(t + dur + 0.1);
+    const c = loopNoise(1.3), bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 3;
+    const cg = ctx.createGain(); cg.gain.setValueAtTime(0.0001, t); cg.gain.exponentialRampToValueAtTime(0.008, t + dur*0.5); cg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 5.2; lg.gain.value = 0.006; lfo.connect(lg); lg.connect(cg.gain);
+    c.connect(bp); bp.connect(cg); cg.connect(out); c.stop(t + dur + 0.1); lfo.start(t); lfo.stop(t + dur);
+  }
+  function rhodes(){
+    /* an electric piano: three slow chords, the tines ringing over a soft bark */
+    const t0 = ctx.currentTime + 0.1;
+    [[146.83, 261.63, 349.23, 440.0, 659.25], [196.0, 246.94, 349.23, 440.0, 659.25], [130.81, 246.94, 329.63, 392.0, 587.33]].forEach((ch, i) => {
+      const t = t0 + i*1.15;
+      ch.forEach((f, k) => {
+        const c = ctx.createOscillator(), m = ctx.createOscillator(), mg = ctx.createGain(), g = ctx.createGain();
+        c.frequency.value = f; m.frequency.value = f*14;
+        mg.gain.setValueAtTime(f*0.9, t + k*0.018); mg.gain.exponentialRampToValueAtTime(f*0.01, t + 0.5);
+        m.connect(mg); mg.connect(c.frequency);
+        env(g, t + k*0.018, 0.028, 0.006, 2.6); c.connect(g); g.connect(out);
+        const w = ctx.createGain(); w.gain.value = 0.5; g.connect(w); w.connect(wet);
+        c.start(t); m.start(t); c.stop(t + 2.8); m.stop(t + 2.8);
+      });
+    });
+  }
   function churchBell(){
     if (!live()) return;
     const t = ctx.currentTime + 0.01, f = 294;
@@ -192,13 +245,14 @@ const SFX = (function(PROF){
   function swell(){
     if (!live()) return;
     if (PROF.swell === 'koto'){ koto(); return; }
+    if (PROF.swell === 'rhodes'){ rhodes(); return; }
     const t = ctx.currentTime + 0.05;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
     lp.frequency.setValueAtTime(300, t); lp.frequency.exponentialRampToValueAtTime(1800, t + 2.4); lp.frequency.exponentialRampToValueAtTime(500, t + 5.5);
     const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.045, t + 1.6); g.gain.exponentialRampToValueAtTime(0.0001, t + 6);
     lp.connect(g); g.connect(out);
     const w = ctx.createGain(); w.gain.value = 0.8; g.connect(w); w.connect(wet);
-    [196, 246.94, 293.66, 369.99, 440].forEach((f, i) => {
+    (PROF.pad || [196, 246.94, 293.66, 369.99, 440]).forEach((f, i) => {
       for (const det of [-7, 7]){
         const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = det + i*1.3;
         o.connect(lp); o.start(t + i*0.12); o.stop(t + 6.2);
@@ -226,9 +280,17 @@ const SFX = (function(PROF){
     const t = ctx.currentTime;
     windG.gain.setTargetAtTime(on ? clamp(speed*0.05, 0, 0.07) : 0, t, 0.08);
     windF.frequency.setTargetAtTime(500 + clamp(speed, 0, 3)*500, t, 0.1);
-    seaG.gain.setTargetAtTime(on ? (PROF.bed === 'valley' ? 0.03 : 0.045) : 0, t, 0.5);
-    crickG.gain.setTargetAtTime(on ? 0.022*night : 0, t, 0.8);
-    if (on && todv > 0.3 && todv < 0.9){ chimeT -= dt; if (chimeT <= 0){ chimeT = 9 + Math.random()*14; if (PROF.chime === 'furin') furin(); else windChime(); } }
+    seaG.gain.setTargetAtTime(on ? (PROF.bed === 'valley' ? 0.03 : PROF.bed === 'city' ? 0.06 : 0.045) : 0, t, 0.5);
+    crickG.gain.setTargetAtTime(on && PROF.insect !== 'none' ? 0.022*night : 0, t, 0.8);
+    /* the occasional sound of the place: chimes at dusk, gulls by day, a train under the street any time */
+    const window_ = PROF.chime === 'gull' ? todv < 0.62 : PROF.chime === 'subway' ? true : todv > 0.3 && todv < 0.9;
+    if (on && window_){
+      chimeT -= dt;
+      if (chimeT <= 0){
+        chimeT = (PROF.chime === 'subway' ? 22 : 9) + Math.random()*(PROF.chime === 'subway' ? 25 : 14);
+        if (PROF.chime === 'furin') furin(); else if (PROF.chime === 'gull') gulls(); else if (PROF.chime === 'subway') subway(); else windChime();
+      }
+    }
   }
   function visibility(hidden){ if (!ready) return; if (hidden) ctx.suspend(); else if (on) ctx.resume(); }
   function dispose(){ if (ready){ try { ctx.close(); } catch (_){} } ready = false; on = false; }

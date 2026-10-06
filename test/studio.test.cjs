@@ -19,11 +19,17 @@ const {load, viewerSuite} = require('./harness.cjs');
     check('name reaches the page live', $('brandName').textContent === 'Agon Aliu' && /Agon Aliu/.test(d.title), d.title);
 
     click('#ks-next'); await wait(10);
-    check('step 2 shows four places', d.querySelectorAll('.ks-place').length === 4 && d.querySelectorAll('.ks-place[disabled]').length === 2);
+    check('step 2 shows four places, all open', d.querySelectorAll('.ks-place').length === 4 && d.querySelectorAll('.ks-place[disabled]').length === 0);
     const ctx0 = h.R().contexts;
     click('[data-setting="kyoto"]'); await wait(900); h.step(4);
     check('choosing Kyoto rebuilds the street', dbg().engine.setting === 'kyoto' && h.R().contexts === ctx0 + 1, 'contexts ' + ctx0 + '→' + h.R().contexts);
     check('old scene torn down', h.R().disposed >= 1 && d.querySelectorAll('canvas#gl').length === 1, 'canvases ' + d.querySelectorAll('canvas#gl').length);
+    click('[data-setting="brooklyn"]'); await wait(900); h.step(4);
+    check('Brooklyn builds', dbg().engine.setting === 'brooklyn' && dbg().state.scene.timeOfDay === 'blue');
+    click('[data-setting="lofoten"]'); await wait(900); h.step(4);
+    check('Lofoten builds and opens at night', dbg().engine.setting === 'lofoten' && dbg().state.scene.timeOfDay === 'night');
+    click('[data-setting="kyoto"]'); await wait(900); h.step(4);
+    check('back to Kyoto', dbg().engine.setting === 'kyoto' && d.querySelectorAll('canvas#gl').length === 1);
     click('[data-tod="night"]'); await wait(20); h.step(60);
     check('time of day applies', $('todLabel').textContent === 'Night', $('todLabel').textContent);
 

@@ -6,8 +6,8 @@ const MINIATURES = ['house','vault','forge','orbit','ledger','blueprint','palett
 const SETTINGS_INFO = {
   santorini: {label:'Santorini', line:'a small street above the caldera', ready:true},
   kyoto:     {label:'Kyoto', line:'a lantern-lit lane up to the pagoda', ready:true},
-  brooklyn:  {label:'Brooklyn', line:'a brownstone block above the river', ready:false},
-  lofoten:   {label:'Lofoten', line:'a harbour lane under the northern lights', ready:false}
+  brooklyn:  {label:'Brooklyn', line:'a brownstone block above the river', ready:true},
+  lofoten:   {label:'Lofoten', line:'a harbour lane under the northern lights', ready:true}
 };
 const TOD_NAMES = {afternoon:0.12, golden:0.42, 'golden hour':0.42, blue:0.64, 'blue hour':0.64, night:0.92};
 const NUM_WORDS = ['No','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve'];

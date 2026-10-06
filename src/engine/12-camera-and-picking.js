@@ -27,7 +27,11 @@ function lookPose(k){
   const w = keyTopWorld(k), yaw = clamp(cam.g.yaw, -0.6, 0.6), pitch = 0.82, dist = 5.2;
   return {yaw, pitch, dist, target:shiftUp(shiftAcross(w.clone(), yaw, dist, -INSET.l/2), yaw, pitch, dist, INSET.b/2)};
 }
-const INTRO_POSE = META.street === 'kyoto' ? {yaw:0.75, pitch:0.5, dist:66, target:new V3(-6, 2, -18)} : {yaw:0.95, pitch:0.07, dist:58, target:new V3(-8, 2.5, -14)};
+const INTRO_POSE = ({
+  kyoto:   {yaw:0.75, pitch:0.5,  dist:66, target:new V3(-6, 2, -18)},
+  brooklyn:{yaw:0.7,  pitch:0.16, dist:60, target:new V3(-6, 3, -20)},
+  lofoten: {yaw:0.6,  pitch:0.12, dist:58, target:new V3(-6, 4, -20)}
+})[META.street] || {yaw:0.95, pitch:0.07, dist:58, target:new V3(-8, 2.5, -14)};
 function setPose(p){
   cam.yaw = cam.g.yaw = p.yaw; cam.pitch = cam.g.pitch = p.pitch; cam.dist = cam.g.dist = p.dist;
   cam.target.copy(p.target); cam.g.target.copy(p.target);

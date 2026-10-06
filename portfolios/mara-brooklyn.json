@@ -1,0 +1,159 @@
+{
+  "version": 1,
+  "owner": {
+    "name": "Mara Lindqvist",
+    "subtitle": "Landscape architecture · a fictional demo portfolio",
+    "description": "A fictional demo portfolio, built from the same engine as the Silicode keyboard."
+  },
+  "intro": {
+    "kicker": "Studio Lindqvist"
+  },
+  "scene": {
+    "theme": "keyboard",
+    "setting": "brooklyn",
+    "timeOfDay": "blue"
+  },
+  "projects": [
+    {
+      "name": "Harbour Steps",
+      "category": "Public waterfront",
+      "color": "#2F8F9D",
+      "miniature": "ship",
+      "lede": "A flight of wide stone steps that turned a car park into the town’s living room.",
+      "body": [
+        "Two hundred metres of quay where people now sit, swim and watch the ferries come in. The steps double as a flood defence, rising in terraces so a storm surge reaches the stone and never the shops."
+      ],
+      "facts": [
+        [
+          "Client",
+          "City harbour board"
+        ],
+        [
+          "Area",
+          "1.4 hectares"
+        ],
+        [
+          "Completed",
+          "Fictional, 2024"
+        ]
+      ],
+      "tags": [
+        "Flood resilience",
+        "Public space",
+        "Stone"
+      ]
+    },
+    {
+      "name": "Rooftop Orchard",
+      "category": "Urban agriculture",
+      "color": "#6E9F4A",
+      "miniature": "sapling",
+      "lede": "Forty fruit trees on top of a supermarket.",
+      "body": [
+        "Shallow-rooted apple and quince varieties on a lightweight soil build-up, harvested by the people who live in the flats next door."
+      ],
+      "facts": [
+        [
+          "Trees",
+          "40"
+        ],
+        [
+          "Soil depth",
+          "60 cm"
+        ]
+      ],
+      "tags": [
+        "Green roofs",
+        "Community"
+      ]
+    },
+    {
+      "name": "The Salt Marsh Study",
+      "key": "F2",
+      "category": "Research",
+      "color": "#C9A23A",
+      "url": "https://example.com",
+      "miniature": "telescope",
+      "lede": "Five years watching a marsh decide where to grow.",
+      "body": [
+        "A long field study of how planted salt marsh migrates as the sea rises, and what designers should stop trying to control."
+      ],
+      "facts": [
+        [
+          "Duration",
+          "Five years"
+        ],
+        [
+          "Format",
+          "Open dataset and paper"
+        ]
+      ],
+      "tags": [
+        "Coastal ecology",
+        "Fieldwork"
+      ]
+    },
+    {
+      "name": "Studio Lindqvist",
+      "category": "The practice",
+      "color": "#D9705B",
+      "miniature": "compass",
+      "lede": "A small office that draws by hand before it draws on screen.",
+      "body": [
+        "Six people, one long table, and a rule that every project starts with a site walk at dawn."
+      ],
+      "facts": [
+        [
+          "Founded",
+          "Fictional, 2015"
+        ],
+        [
+          "Team",
+          "Six"
+        ]
+      ],
+      "tags": [
+        "Landscape",
+        "Planning"
+      ]
+    },
+    {
+      "name": "Courtyard Commons",
+      "category": "Housing landscape",
+      "color": "#B7789E",
+      "miniature": "scales",
+      "lede": "A shared garden negotiated between ninety households.",
+      "body": [
+        "Every bench, bed and lamp was voted on. The design work was mostly listening, and then making the compromise look intentional."
+      ],
+      "facts": [
+        [
+          "Households",
+          "90"
+        ],
+        [
+          "Workshops",
+          "14"
+        ]
+      ],
+      "tags": [
+        "Participation",
+        "Housing"
+      ]
+    },
+    {
+      "name": "Field Notes",
+      "category": "Teaching",
+      "color": "#7C93C9",
+      "miniature": "lantern",
+      "lede": "An evening course on reading a landscape.",
+      "body": [
+        "Twelve walks, one notebook each, and no slides."
+      ],
+      "tags": [
+        "Teaching",
+        "Drawing"
+      ]
+    }
+  ]
+}

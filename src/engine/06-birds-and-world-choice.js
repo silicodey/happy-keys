@@ -14,7 +14,15 @@ const birds = (function(){
 })();
 
 const MAT_TOP = 0.06;
-const WORLD = META.street === 'kyoto' ? worldKyoto() : worldSantorini();
-const PLAT  = META.street === 'kyoto' ? platformKyoto() : platformSantorini();
+/* each street brings its own world, platform and lane; santorini is the fallback */
+const PLACES = {
+  santorini:{world:worldSantorini, platform:platformSantorini, street:streetSantorini},
+  kyoto:    {world:worldKyoto,     platform:platformKyoto,     street:streetKyoto},
+  brooklyn: {world:worldBrooklyn,  platform:platformBrooklyn,  street:streetBrooklyn},
+  lofoten:  {world:worldLofoten,   platform:platformLofoten,   street:streetLofoten}
+};
+const PLACE = PLACES[META.street] || PLACES.santorini;
+const WORLD = PLACE.world();
+const PLAT  = PLACE.platform();
 const matMesh = PLAT.mat;
 

@@ -27,7 +27,8 @@ const SETTING_DATA = {
     robe:false,
     birds:'#3E4654',
     sound:{bed:'sea', insect:'cricket', chime:'wind', bell:'church', swell:'pad',
-      notes:[523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66]}
+      notes:[523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66]},
+    cat:'#E4D6C2'
   },
   kyoto: {
     tod: [
@@ -43,7 +44,43 @@ const SETTING_DATA = {
     robe:true,
     birds:'#2E2723',
     sound:{bed:'valley', insect:'suzumushi', chime:'furin', bell:'bonsho', swell:'koto',
-      notes:[587.33, 622.25, 783.99, 880.0, 932.33, 1174.66, 1244.51]}
+      notes:[587.33, 622.25, 783.99, 880.0, 932.33, 1174.66, 1244.51]},
+    cat:'#2B2826'
+  },
+  brooklyn: {
+    tod: [
+      {t:0.00, top:'#5A8CC4', hor:'#D3DCE4', sea:'#3E5869', sun:'#FFF2DC', sunI:2.4,  az:-0.42, el:0.85, hs:'#D6E2EC', hg:'#8E7E6C', hi:0.80, exp:0.95, bloom:0.12, cloud:'#FFFFFF', isl:'#9AAAB8', city:0},
+      {t:0.42, top:'#5F78AC', hor:'#F2B985', sea:'#56535F', sun:'#FFB46E', sunI:2.2,  az:-0.14, el:0.18, hs:'#BCB9D0', hg:'#9A6E50', hi:0.62, exp:1.00, bloom:0.28, cloud:'#FFD0A6', isl:'#8A7F98', city:0.1},
+      {t:0.64, top:'#1F2C66', hor:'#D97A62', sea:'#2A2F4A', sun:'#FF8A5C', sunI:1.0,  az:-0.04, el:0.03, hs:'#5F6AAE', hg:'#4E3E3A', hi:0.55, exp:1.12, bloom:0.55, cloud:'#C98A92', isl:'#2E3458', city:0.7},
+      {t:1.00, top:'#05081A', hor:'#2A2440', sea:'#0E1020', sun:'#A9BCEB', sunI:0.45, az:-0.04, el:-0.3, hs:'#2A3260', hg:'#1A1618', hi:0.44, exp:1.30, bloom:0.75, cloud:'#3A3550', isl:'#12152A', city:1.4}
+    ],
+    fog:[140, 1700],
+    board:{alpha:'#ECE4D5', mod:'#34414E', plate:'#151313', legA:'#3A3230', legM:'#F1E6D6', glowA:'#FFCF9A', glowM:'#FFE0B8',
+      caseHex:'#3C4046', caseRough:0.32, caseMetal:0.9, grain:false, mat:'#2A3138', stitch:'#C2784A'},
+    shirts:['#2B2F3A','#8E3B2E','#C9A227','#3F6E8C','#E8E2D6','#5E7F4A','#B5546A'],
+    robe:false,
+    birds:'#4A4E57',
+    sound:{bed:'city', insect:'cricket', chime:'subway', bell:'church', swell:'rhodes',
+      notes:[523.25, 587.33, 622.25, 698.46, 783.99, 932.33, 1046.5]},
+    cat:'#3A3532'
+  },
+  lofoten: {
+    tod: [
+      {t:0.00, top:'#6C93C2', hor:'#E9D8CC', sea:'#1E4458', sun:'#FFE4C4', sunI:1.9,  az:-0.35, el:0.28, hs:'#D0DCEA', hg:'#7D8790', hi:0.85, exp:0.95, bloom:0.16, cloud:'#FFF2EA', isl:'#A9B6C8', city:0},
+      {t:0.42, top:'#6A7BB4', hor:'#F4B38E', sea:'#2C3E5A', sun:'#FFA770', sunI:1.7,  az:-0.12, el:0.10, hs:'#C0BCD6', hg:'#86788A', hi:0.66, exp:1.00, bloom:0.28, cloud:'#FFC6A8', isl:'#8F8AA8', city:0},
+      {t:0.64, top:'#17295E', hor:'#4C5E96', sea:'#142344', sun:'#8FA6E0', sunI:0.7,  az:-0.05, el:0.00, hs:'#4E64A8', hg:'#2E3654', hi:0.60, exp:1.15, bloom:0.50, cloud:'#5C6A9A', isl:'#2A3966', city:0.1},
+      {t:1.00, top:'#020615', hor:'#0B1A2C', sea:'#050B18', sun:'#A9BCEB', sunI:0.45, az:-0.05, el:-0.3, hs:'#22305E', hg:'#151C2C', hi:0.46, exp:1.30, bloom:0.72, cloud:'#1E2A44', isl:'#0C1426', city:0.05}
+    ],
+    fog:[200, 2600],
+    board:{alpha:'#EEF0EE', mod:'#A8322C', plate:'#141A22', legA:'#2E3642', legM:'#F4F1EA', glowA:'#FFD9A8', glowM:'#FFE6C2',
+      caseHex:'#C9B08A', caseRough:0.5, caseMetal:0.0, grain:true, mat:'#1E2A3A', stitch:'#D9D4C8'},
+    shirts:['#A8322C','#2E4A6B','#E3B341','#F2EFE8','#3D5A47','#6B4E7A','#1F2A36'],
+    robe:false,
+    birds:'#E8ECEF',
+    sound:{bed:'sea', insect:'none', chime:'gull', bell:'buoy', swell:'pad',
+      pad:[146.83, 220.0, 261.63, 293.66, 349.23],
+      notes:[587.33, 659.25, 698.46, 880.0, 987.77, 1174.66, 1318.51]},
+    cat:'#E9E4DA'
   }
 };
 const SET = SETTING_DATA[META.street] || SETTING_DATA.santorini;

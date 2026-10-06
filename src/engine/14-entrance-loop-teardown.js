@@ -26,6 +26,7 @@ function animate(dt){
   for (const p of GLOWS) p.material.uniforms.uTime.value = T;
   sky.position.copy(camera.position); stars.position.copy(camera.position);
   WORLD.animate(dt); PLAT.animate(dt); STREET.animate(dt);
+  KEYFX.step(dt);
 
   for (const s of SWAY){ s.ph = (s.ph || s.p) + dt*s.s*speedOf(s); s.o.rotation.z = s.base + Math.sin(s.ph)*s.a; }
   for (const s of SPIN) s.o.rotation.y += dt*s.spd*speedOf(s);

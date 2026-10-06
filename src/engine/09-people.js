@@ -1,4 +1,4 @@
-const STREET = META.street === 'kyoto' ? streetKyoto() : streetSantorini();
+const STREET = PLACE.street();
 const villageMerged = STREET.merged;
 
 /* people: some walk the lane, two sit and watch it, one cat */
@@ -32,7 +32,7 @@ CAFES.slice(0, 2).forEach((c, i) => {
   villageDyn.add(p.g);
 });
 const cat = (function(){
-  const g = new THREE.Group(), m = std(META.street === 'kyoto' ? '#2B2826' : '#E4D6C2', 1);
+  const g = new THREE.Group(), m = std(SET.cat || '#E4D6C2', 1);
   const b = mb(0.045, 0.017, 0.02, m); b.position.y = 0.018; g.add(b);
   const h = mb(0.018, 0.017, 0.018, m); h.position.set(0.028, 0.03, 0); g.add(h);
   const tail = mb(0.026, 0.006, 0.006, m); tail.position.set(-0.03, 0.028, 0); g.add(tail);
