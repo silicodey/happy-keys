@@ -70,11 +70,17 @@ function validatePortfolio(raw, opts){
     const where = 'Project ' + (i + 1) + (isStr(p && p.name) ? ' (' + p.name + ')' : '');
     if (!p || typeof p !== 'object'){ flag(i, 'name', where + ' is not an object.'); return; }
     if (!isStr(p.name)){ flag(i, 'name', where + ' needs a name.'); return; }
-    const it = {p, key:null, i, url:null, color:null, arche:null};
+    const it = {p, key:null, i, url:null, color:null, arche:null, preview:null};
     if (p.name.length > 40) flag(i, 'name', where + ': the name is longer than 40 characters.');
     if (isStr(p.url)){
       if (/^https?:\/\/[^\s]+\.[^\s]+/i.test(p.url.trim())) it.url = p.url.trim();
       else flag(i, 'url', where + ': the link should be a full web address starting with https://');
+    }
+    /* preview: a link to an image or a short video of the project; false turns the automatic screenshot off */
+    if (p.preview === false) it.preview = false;
+    else if (isStr(p.preview)){
+      if (/^https:\/\/[^\s]+\.[^\s]+/i.test(p.preview.trim())) it.preview = p.preview.trim();
+      else flag(i, 'preview', where + ': the preview should be a full https:// link to an image or a video.');
     }
     if (p.color != null && p.color !== ''){
       if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(p.color)) it.color = p.color;
@@ -105,14 +111,14 @@ function validatePortfolio(raw, opts){
 
   const products = {}, order = [], keyOf = {}, slotOf = {};
   const txt = (v, max) => isStr(v) ? v.trim().slice(0, max) : '';
-  items.forEach(({p, key, i, url, color, arche}) => {
+  items.forEach(({p, key, i, url, color, arche, preview}) => {
     const body = Array.isArray(p.body) ? p.body.filter(isStr).map(s => s.trim().slice(0, 900)) : (isStr(p.body) ? [p.body.trim().slice(0, 900)] : []);
     const facts = (Array.isArray(p.facts) ? p.facts : []).map(f => Array.isArray(f) ? f : (f && typeof f === 'object' ? [f.label, f.value] : null))
       .filter(f => f && isStr(String(f[0] == null ? '' : f[0])) && f[1] != null && String(f[1]).trim()).slice(0, 6).map(f => [String(f[0]).slice(0, 40), String(f[1]).slice(0, 80)]);
     const tags = (Array.isArray(p.tags) ? p.tags : []).filter(isStr).slice(0, 8).map(t => t.trim().slice(0, 30));
     const label = KEY_LABELS[key] || key;
     products[key] = {key:label, name:p.name.trim(), cat:txt(p.category, 60), color:color || FALLBACK_COLORS[i % FALLBACK_COLORS.length],
-      url, arche:arche || 'lantern', lede:txt(p.lede, 160), body, facts, tags};
+      url, preview, arche:arche || 'lantern', lede:txt(p.lede, 160), body, facts, tags};
     slotOf[i] = order.length; order.push(key); keyOf[i] = label;
   });
   const n = order.length, word = NUM_WORDS[n] || String(n);

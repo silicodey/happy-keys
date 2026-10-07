@@ -17,10 +17,98 @@ function fillPanel(k){
   $('pTags').innerHTML = P.tags.map(t => '<span>' + esc(t) + '</span>').join('');
   $('pLede').style.display = P.lede ? '' : 'none';
   const v = $('pVisit');
-  if (P.url){ v.href = P.url; $('pVisitTx').textContent = 'Visit ' + P.url.replace(/^https?:\/\//, ''); v.style.display = ''; }
+  if (P.url){ v.href = P.url; $('pVisitTx').textContent = 'Visit ' + P.url.replace(/^https?:\/\//, '').replace(/\/$/, ''); v.style.display = ''; }
   else v.style.display = 'none';
+  PEEK.prepare(P);
   $('pScroll').scrollTop = 0;
 }
+/* a look at where the link goes: the project's own preview, or a screenshot of the site taken on the fly */
+const PEEK = (function(){
+  const card = $('peek'), shot = $('peekShot'), wait = $('peekWait'), host = $('peekUrl'), inl = $('pPeek'), vis = $('pVisit');
+  const cache = new Map();
+  let cur = null, hideT = 0;
+  const isVideo = s => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(s);
+  const domain = u => u.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const inline = () => COARSE || innerWidth <= 820;
+  function sourceFor(P){
+    if (P.preview === false || (!P.url && !P.preview)) return null;
+    if (P.preview) return {key:P.preview, video:isVideo(P.preview), shot:false};
+    return {key:'https://s.wordpress.com/mshots/v1/' + encodeURIComponent(P.url) + '?w=1280&h=800', video:false, shot:true};
+  }
+  function load(P){
+    const s = sourceFor(P); if (!s) return null;
+    let e = cache.get(s.key); if (e) return e;
+    e = {s, state:'loading', src:s.key, tries:0}; cache.set(s.key, e);
+    if (s.video){ e.state = 'ready'; return e; }
+    const attempt = () => {
+      const im = new Image(); im.referrerPolicy = 'no-referrer'; im.decoding = 'async';
+      const url = s.key + (e.tries ? (s.key.indexOf('?') >= 0 ? '&' : '?') + 'retry=' + e.tries : '');
+      im.onload = () => {
+        /* the screenshot service answers with a small placeholder while it is still taking the picture */
+        if (s.shot && im.naturalWidth < 600 && e.tries < 6){ e.tries++; setTimeout(attempt, 2200 + e.tries*900); return; }
+        e.state = 'ready'; e.src = url; refresh(e);
+      };
+      im.onerror = () => { e.state = 'fail'; refresh(e); };
+      im.src = url;
+    };
+    attempt();
+    return e;
+  }
+  function media(e){
+    if (e.s.video){ const v = document.createElement('video'); v.src = e.src; v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true; v.setAttribute('muted', ''); return v; }
+    const im = document.createElement('img'); im.src = e.src; im.alt = ''; im.referrerPolicy = 'no-referrer'; return im;
+  }
+  function fill(el, e){
+    el.querySelectorAll('img,video').forEach(n => n.remove());
+    if (e.state !== 'ready') return false;
+    const m = media(e); el.appendChild(m); if (m.play) m.play().catch(() => {});
+    return true;
+  }
+  function refresh(e){
+    if (!cur || cur.e !== e) return;
+    if (e.state === 'fail'){ hide(true); inl.classList.remove('ready'); inl.innerHTML = ''; return; }
+    if (inline()){ inl.innerHTML = ''; if (fill(inl, e)) inl.classList.add('ready'); }
+    else if (card.classList.contains('on') && e.state === 'ready' && !shot.classList.contains('ready')){ fill(shot, e); shot.classList.add('ready'); }
+  }
+  function prepare(P){
+    hide(true);
+    inl.classList.remove('ready'); inl.innerHTML = '';
+    const e = load(P);
+    cur = e ? {e, P} : null;
+    if (!e) return;
+    inl.href = P.url || P.preview;
+    if (inline() && e.state === 'ready' && fill(inl, e)) inl.classList.add('ready');
+  }
+  function place(){
+    const pr = panel.getBoundingClientRect(), vr = vis.getBoundingClientRect();
+    const w = Math.min(500, innerWidth*0.34), h = 31 + w*0.625;
+    card.style.left = Math.max(16, pr.left - w - 22) + 'px';
+    card.style.top = clamp(vr.top + vr.height/2 - h/2, 16, innerHeight - h - 16) + 'px';
+  }
+  function show(){
+    if (!cur || inline() || !focused || cur.e.state === 'fail') return;
+    clearTimeout(hideT);
+    if (card.classList.contains('on')) return;
+    const {e, P} = cur;
+    host.textContent = domain(P.url || P.preview);
+    card.href = P.url || P.preview;
+    card.style.setProperty('--accent', P.color);
+    wait.textContent = 'Taking a look at ' + domain(P.url || P.preview) + '…';
+    shot.classList.remove('ready'); shot.querySelectorAll('img,video').forEach(n => n.remove());
+    if (fill(shot, e)) shot.classList.add('ready');
+    place(); card.classList.add('on'); card.setAttribute('aria-hidden', 'false');
+  }
+  function hide(now){
+    clearTimeout(hideT);
+    const go = () => { card.classList.remove('on'); card.setAttribute('aria-hidden', 'true'); shot.querySelectorAll('video').forEach(v => v.pause()); };
+    if (now) go(); else hideT = setTimeout(go, 220);
+  }
+  on(vis, 'pointerenter', show); on(vis, 'focus', show);
+  on(vis, 'pointerleave', () => hide()); on(vis, 'blur', () => hide());
+  on(card, 'pointerenter', () => clearTimeout(hideT)); on(card, 'pointerleave', () => hide());
+  on(window, 'resize', () => { if (card.classList.contains('on')) place(); });
+  return {prepare, hide};
+})();
 function keyTopWorld(k){ return deck.localToWorld(new V3(k.x, KEY_BASE + CAP.H*k.sy*0.6, k.z)); }
 function focusPose(k){
   const w = keyTopWorld(k), yaw = clamp(cam.g.yaw, -0.6, 0.6), pitch = 0.8, dist = innerWidth > 820 ? 4.3 : 5.4, t = w.clone();
@@ -46,6 +134,7 @@ function close(){
   if (!focused) return;
   focused.hold = false; activate(focused); focused = null;
   panel.classList.remove('open', 'show'); panel.setAttribute('aria-hidden', 'true');
+  PEEK.hide(true);
   flyTo(preFocus || homePose(), 1.4); preFocus = null;
   SFX.closeSound();
   try { cv.focus({preventScroll:true}); } catch (_){}

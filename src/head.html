@@ -103,6 +103,27 @@ body.live .hud.act{pointer-events:auto}
   color:var(--night);text-decoration:none;font-size:14px;font-weight:600;transition:gap .4s var(--ease),box-shadow .4s}
 #panel .visit svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #panel .visit:hover{gap:15px;box-shadow:0 0 0 5px rgba(242,240,234,.13)}
+/* a look at the destination: floats beside the panel while the Visit button is hovered */
+#peek{position:fixed;z-index:12;left:0;top:0;width:min(500px,34vw);border-radius:16px;overflow:hidden;background:#0B1024;
+  border:1px solid var(--hair);box-shadow:0 44px 110px rgba(3,6,18,.62),0 0 60px -20px var(--accent,#5A7BE0);color:var(--wash);text-decoration:none;
+  opacity:0;pointer-events:none;transform-origin:right center;transform:perspective(1400px) translateX(26px) rotateY(-10deg) scale(.93);
+  transition:opacity .32s var(--ease),transform .7s var(--ease)}
+#peek.on{opacity:1;pointer-events:auto;transform:perspective(1400px) translateX(0) rotateY(-3deg) scale(1)}
+#peek .bar{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;background:rgba(242,240,234,.06);border-bottom:1px solid var(--hair)}
+#peek .bar i{width:8px;height:8px;border-radius:50%;background:rgba(242,240,234,.2)}
+#peek .bar span{flex:1;margin-right:34px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#peek .shot{position:relative;aspect-ratio:16/10;overflow:hidden;background:linear-gradient(110deg,#121831 30%,#1c2445 50%,#121831 70%);background-size:220% 100%;animation:peekShimmer 1.5s linear infinite}
+#peek .shot.ready{animation:none;background:#0B1024}
+#peek img,#peek video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+#peek.on .shot.ready img{animation:peekDrift 10s ease-in-out infinite alternate}
+#peek .wait{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:var(--faint)}
+#peek .shot.ready .wait{display:none}
+@keyframes peekShimmer{to{background-position:-220% 0}}
+@keyframes peekDrift{from{transform:scale(1) translateY(0)}to{transform:scale(1.07) translateY(-2%)}}
+#panel .peekIn{display:none;margin-top:24px;border-radius:14px;overflow:hidden;border:1px solid var(--hair);aspect-ratio:16/10;background:#0B1024}
+#panel .peekIn.ready{display:block}
+#panel .peekIn img,#panel .peekIn video{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+@media (prefers-reduced-motion:reduce){ #peek.on .shot.ready img{animation:none} }
 #panel .foot{position:relative;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-top:1px solid var(--hair);font-size:13px}
 #panel .foot button{display:inline-flex;align-items:center;gap:7px;background:none;border:0;cursor:pointer;color:var(--mute);padding:8px 10px;border-radius:10px;transition:color .25s,background .25s}
 #panel .foot button:hover{color:var(--wash);background:rgba(242,240,234,.07)}
@@ -206,6 +227,10 @@ body.live .hud.act{pointer-events:auto}
 <div class="hud" id="progress"><div id="dots" aria-hidden="true"></div><span id="ctr"></span></div>
 <div class="hud" id="hint">Drag to look around, scroll to move in, click a glowing key. Or just type.</div>
 
+<a id="peek" target="_blank" rel="noopener" aria-hidden="true" tabindex="-1">
+  <div class="bar"><i></i><i></i><i></i><span id="peekUrl"></span></div>
+  <div class="shot" id="peekShot"><span class="wait" id="peekWait"></span></div>
+</a>
 <aside id="panel" aria-hidden="true" aria-labelledby="pName">
   <div class="halo"></div>
   <div class="scroll" id="pScroll">
@@ -215,6 +240,7 @@ body.live .hud.act{pointer-events:auto}
     <div class="body fx" id="pBody"></div>
     <dl class="fx" id="pFacts"></dl>
     <div class="tags fx" id="pTags"></div>
+    <a class="peekIn fx" id="pPeek" target="_blank" rel="noopener" aria-hidden="true" tabindex="-1"></a>
     <a class="visit fx" id="pVisit" target="_blank" rel="noopener"><span id="pVisitTx"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 16L16 8M9.5 8H16v6.5"/></svg></a>
   </div>
   <nav class="foot" aria-label="Project navigation">

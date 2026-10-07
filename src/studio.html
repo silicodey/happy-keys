@@ -260,6 +260,7 @@ function normalize(raw){
   s.scene.timeOfDay = typeof t === 'string' && KS.tods[t.toLowerCase()] !== undefined ? t.toLowerCase() : (typeof t === 'number' ? t : 'blue');
   s.projects = (Array.isArray(raw.projects) ? raw.projects : []).slice(0, KS.max).map(p => ({
     name:String(p.name || ''), lede:String(p.lede || ''), category:String(p.category || ''), miniature:String(p.miniature || ''),
+    preview:p.preview === false ? false : String(p.preview || ''),
     color:String(p.color || ''), url:String(p.url || ''), key:String(p.key || ''),
     body:Array.isArray(p.body) ? p.body.map(String) : (p.body ? [String(p.body)] : []),
     facts:(Array.isArray(p.facts) ? p.facts : []).map(f => Array.isArray(f) ? [String(f[0] || ''), String(f[1] || '')] : [String((f && f.label) || ''), String((f && f.value) || '')]),
@@ -277,6 +278,7 @@ function portfolio(){
   out.projects = state.projects.map(p => {
     const q = {name:p.name.trim()};
     for (const k of ['key', 'category', 'color', 'url', 'miniature', 'lede']) if (p[k] && p[k].trim()) q[k] = p[k].trim();
+    if (p.preview === false) q.preview = false; else if (p.preview && p.preview.trim()) q.preview = p.preview.trim();
     const body = p.body.map(t => t.trim()).filter(Boolean); if (body.length) q.body = body;
     const facts = p.facts.filter(f => f[0].trim() && f[1].trim()).map(f => [f[0].trim(), f[1].trim()]); if (facts.length) q.facts = facts;
     const tags = p.tags.map(t => t.trim()).filter(Boolean); if (tags.length) q.tags = tags;
@@ -416,7 +418,9 @@ function renderCard(p, i){
     '<span class="ks-hint" id="mini-hint-' + i + '">' + MINI_NAMES[p.miniature || 'lantern'] + ': ' + MINI_HINT[p.miniature || 'lantern'] + '.</span><span class="ks-err" data-err="' + i + ':miniature" hidden></span></div>' +
     '<div class="ks-field"><span class="ks-label">Its colour</span><div class="ks-swatches">' + sws +
     '<label class="ks-custom">Custom <input type="color" data-colorpick value="' + esc(/^#[0-9a-f]{6}$/i.test(col) ? col : '#888888') + '" aria-label="Custom colour"></label></div><span class="ks-err" data-err="' + i + ':color" hidden></span></div>' +
-    field('Link', 'p' + i + '-url', p.url, {bind:B('url'), type:'url', ph:'https://', optional:true, err:i + ':url', hint:'Shown as a Visit button in its panel.'}) +
+    field('Link', 'p' + i + '-url', p.url, {bind:B('url'), type:'url', ph:'https://', optional:true, err:i + ':url', hint:'Shown as a Visit button in its panel. Hovering it shows a screenshot of the site, taken automatically once your page is online.'}) +
+    field('Your own preview', 'p' + i + '-preview', p.preview === false ? '' : p.preview, {bind:B('preview'), type:'url', ph:'https://…/screenshot.png or …/demo.mp4', optional:true, err:i + ':preview',
+      hint:'A link to an image or a short muted video to show instead of the automatic screenshot. A video plays on a loop.'}) +
     field('Tell its story', 'p' + i + '-body', p.body.join('\n\n'), {bind:B('body'), area:true, rows:5, best:true,
       ph:'What it is and who it is for.\n\nWhy it exists, and what changed because of it.', hint:'Two short paragraphs read best. Leave a blank line between paragraphs.'}) +
     '<div class="ks-field"><span class="ks-label"><span>Facts worth remembering</span><span class="best">For best results</span></span><div class="ks-facts">' + facts + '</div>' +
@@ -519,7 +523,7 @@ function addProject(){
   if (state.projects.length >= KS.max) return;
   const used = new Set(state.projects.map(p => (p.miniature || '').toLowerCase()));
   const mini = KS.miniatures.find(m => !used.has(m)) || 'lantern';
-  state.projects.push({name:'', lede:'', category:'', miniature:mini, color:KS.colors[state.projects.length % KS.colors.length], url:'', key:'', body:[], facts:[], tags:[]});
+  state.projects.push({name:'', lede:'', category:'', preview:'', miniature:mini, color:KS.colors[state.projects.length % KS.colors.length], url:'', key:'', body:[], facts:[], tags:[]});
   openCard = state.projects.length - 1; pendingRemove = -1;
   render(true); changed();
   const el = $('p' + openCard + '-name'); if (el) el.focus({preventScroll:false});

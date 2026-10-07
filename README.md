@@ -87,6 +87,7 @@ You never need to write this by hand, but it is plain JSON if you prefer to:
       "color": "#2F8F9D",
       "miniature": "ship",
       "url": "https://example.com",
+      "preview": "https://example.com/demo.mp4",
       "lede": "A flight of stone steps that turned a car park into the town's living room.",
       "body": ["First paragraph.", "Second paragraph."],
       "facts": [["Client", "City harbour board"], ["Area", "1.4 hectares"]],
@@ -99,6 +100,7 @@ You never need to write this by hand, but it is plain JSON if you prefer to:
 - `setting`: `santorini`, `kyoto`, `brooklyn` or `lofoten`.
 - `timeOfDay`: `afternoon`, `golden`, `blue` or `night`; visitors can still slide through the day.
 - `miniature`: `house`, `vault`, `forge`, `orbit`, `ledger`, `blueprint`, `palette`, `telescope`, `compass`, `loom`, `ship`, `sapling`, `gears`, `scales` or `lantern`.
+- `preview` (optional): an image or a short video shown when someone hovers the project's Visit button. Without it, a screenshot of `url` is taken automatically by WordPress's free mShots service; set `"preview": false` to turn that off.
 - Up to 12 projects. `key` is optional; leave it out and a free key is chosen from the project's name.
 - Only `owner.name` and each project's `name` are required.
 

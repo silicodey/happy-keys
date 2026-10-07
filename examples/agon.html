@@ -103,6 +103,27 @@ body.live .hud.act{pointer-events:auto}
   color:var(--night);text-decoration:none;font-size:14px;font-weight:600;transition:gap .4s var(--ease),box-shadow .4s}
 #panel .visit svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #panel .visit:hover{gap:15px;box-shadow:0 0 0 5px rgba(242,240,234,.13)}
+/* a look at the destination: floats beside the panel while the Visit button is hovered */
+#peek{position:fixed;z-index:12;left:0;top:0;width:min(500px,34vw);border-radius:16px;overflow:hidden;background:#0B1024;
+  border:1px solid var(--hair);box-shadow:0 44px 110px rgba(3,6,18,.62),0 0 60px -20px var(--accent,#5A7BE0);color:var(--wash);text-decoration:none;
+  opacity:0;pointer-events:none;transform-origin:right center;transform:perspective(1400px) translateX(26px) rotateY(-10deg) scale(.93);
+  transition:opacity .32s var(--ease),transform .7s var(--ease)}
+#peek.on{opacity:1;pointer-events:auto;transform:perspective(1400px) translateX(0) rotateY(-3deg) scale(1)}
+#peek .bar{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;background:rgba(242,240,234,.06);border-bottom:1px solid var(--hair)}
+#peek .bar i{width:8px;height:8px;border-radius:50%;background:rgba(242,240,234,.2)}
+#peek .bar span{flex:1;margin-right:34px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#peek .shot{position:relative;aspect-ratio:16/10;overflow:hidden;background:linear-gradient(110deg,#121831 30%,#1c2445 50%,#121831 70%);background-size:220% 100%;animation:peekShimmer 1.5s linear infinite}
+#peek .shot.ready{animation:none;background:#0B1024}
+#peek img,#peek video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+#peek.on .shot.ready img{animation:peekDrift 10s ease-in-out infinite alternate}
+#peek .wait{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:var(--faint)}
+#peek .shot.ready .wait{display:none}
+@keyframes peekShimmer{to{background-position:-220% 0}}
+@keyframes peekDrift{from{transform:scale(1) translateY(0)}to{transform:scale(1.07) translateY(-2%)}}
+#panel .peekIn{display:none;margin-top:24px;border-radius:14px;overflow:hidden;border:1px solid var(--hair);aspect-ratio:16/10;background:#0B1024}
+#panel .peekIn.ready{display:block}
+#panel .peekIn img,#panel .peekIn video{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+@media (prefers-reduced-motion:reduce){ #peek.on .shot.ready img{animation:none} }
 #panel .foot{position:relative;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-top:1px solid var(--hair);font-size:13px}
 #panel .foot button{display:inline-flex;align-items:center;gap:7px;background:none;border:0;cursor:pointer;color:var(--mute);padding:8px 10px;border-radius:10px;transition:color .25s,background .25s}
 #panel .foot button:hover{color:var(--wash);background:rgba(242,240,234,.07)}
@@ -206,6 +227,10 @@ body.live .hud.act{pointer-events:auto}
 <div class="hud" id="progress"><div id="dots" aria-hidden="true"></div><span id="ctr"></span></div>
 <div class="hud" id="hint">Drag to look around, scroll to move in, click a glowing key. Or just type.</div>
 
+<a id="peek" target="_blank" rel="noopener" aria-hidden="true" tabindex="-1">
+  <div class="bar"><i></i><i></i><i></i><span id="peekUrl"></span></div>
+  <div class="shot" id="peekShot"><span class="wait" id="peekWait"></span></div>
+</a>
 <aside id="panel" aria-hidden="true" aria-labelledby="pName">
   <div class="halo"></div>
   <div class="scroll" id="pScroll">
@@ -215,6 +240,7 @@ body.live .hud.act{pointer-events:auto}
     <div class="body fx" id="pBody"></div>
     <dl class="fx" id="pFacts"></dl>
     <div class="tags fx" id="pTags"></div>
+    <a class="peekIn fx" id="pPeek" target="_blank" rel="noopener" aria-hidden="true" tabindex="-1"></a>
     <a class="visit fx" id="pVisit" target="_blank" rel="noopener"><span id="pVisitTx"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 16L16 8M9.5 8H16v6.5"/></svg></a>
   </div>
   <nav class="foot" aria-label="Project navigation">
@@ -660,11 +686,17 @@ function validatePortfolio(raw, opts){
     const where = 'Project ' + (i + 1) + (isStr(p && p.name) ? ' (' + p.name + ')' : '');
     if (!p || typeof p !== 'object'){ flag(i, 'name', where + ' is not an object.'); return; }
     if (!isStr(p.name)){ flag(i, 'name', where + ' needs a name.'); return; }
-    const it = {p, key:null, i, url:null, color:null, arche:null};
+    const it = {p, key:null, i, url:null, color:null, arche:null, preview:null};
     if (p.name.length > 40) flag(i, 'name', where + ': the name is longer than 40 characters.');
     if (isStr(p.url)){
       if (/^https?:\/\/[^\s]+\.[^\s]+/i.test(p.url.trim())) it.url = p.url.trim();
       else flag(i, 'url', where + ': the link should be a full web address starting with https://');
+    }
+    /* preview: a link to an image or a short video of the project; false turns the automatic screenshot off */
+    if (p.preview === false) it.preview = false;
+    else if (isStr(p.preview)){
+      if (/^https:\/\/[^\s]+\.[^\s]+/i.test(p.preview.trim())) it.preview = p.preview.trim();
+      else flag(i, 'preview', where + ': the preview should be a full https:// link to an image or a video.');
     }
     if (p.color != null && p.color !== ''){
       if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(p.color)) it.color = p.color;
@@ -695,14 +727,14 @@ function validatePortfolio(raw, opts){
 
   const products = {}, order = [], keyOf = {}, slotOf = {};
   const txt = (v, max) => isStr(v) ? v.trim().slice(0, max) : '';
-  items.forEach(({p, key, i, url, color, arche}) => {
+  items.forEach(({p, key, i, url, color, arche, preview}) => {
     const body = Array.isArray(p.body) ? p.body.filter(isStr).map(s => s.trim().slice(0, 900)) : (isStr(p.body) ? [p.body.trim().slice(0, 900)] : []);
     const facts = (Array.isArray(p.facts) ? p.facts : []).map(f => Array.isArray(f) ? f : (f && typeof f === 'object' ? [f.label, f.value] : null))
       .filter(f => f && isStr(String(f[0] == null ? '' : f[0])) && f[1] != null && String(f[1]).trim()).slice(0, 6).map(f => [String(f[0]).slice(0, 40), String(f[1]).slice(0, 80)]);
     const tags = (Array.isArray(p.tags) ? p.tags : []).filter(isStr).slice(0, 8).map(t => t.trim().slice(0, 30));
     const label = KEY_LABELS[key] || key;
     products[key] = {key:label, name:p.name.trim(), cat:txt(p.category, 60), color:color || FALLBACK_COLORS[i % FALLBACK_COLORS.length],
-      url, arche:arche || 'lantern', lede:txt(p.lede, 160), body, facts, tags};
+      url, preview, arche:arche || 'lantern', lede:txt(p.lede, 160), body, facts, tags};
     slotOf[i] = order.length; order.push(key); keyOf[i] = label;
   });
   const n = order.length, word = NUM_WORDS[n] || String(n);
@@ -4476,10 +4508,98 @@ function fillPanel(k){
   $('pTags').innerHTML = P.tags.map(t => '<span>' + esc(t) + '</span>').join('');
   $('pLede').style.display = P.lede ? '' : 'none';
   const v = $('pVisit');
-  if (P.url){ v.href = P.url; $('pVisitTx').textContent = 'Visit ' + P.url.replace(/^https?:\/\//, ''); v.style.display = ''; }
+  if (P.url){ v.href = P.url; $('pVisitTx').textContent = 'Visit ' + P.url.replace(/^https?:\/\//, '').replace(/\/$/, ''); v.style.display = ''; }
   else v.style.display = 'none';
+  PEEK.prepare(P);
   $('pScroll').scrollTop = 0;
 }
+/* a look at where the link goes: the project's own preview, or a screenshot of the site taken on the fly */
+const PEEK = (function(){
+  const card = $('peek'), shot = $('peekShot'), wait = $('peekWait'), host = $('peekUrl'), inl = $('pPeek'), vis = $('pVisit');
+  const cache = new Map();
+  let cur = null, hideT = 0;
+  const isVideo = s => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(s);
+  const domain = u => u.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const inline = () => COARSE || innerWidth <= 820;
+  function sourceFor(P){
+    if (P.preview === false || (!P.url && !P.preview)) return null;
+    if (P.preview) return {key:P.preview, video:isVideo(P.preview), shot:false};
+    return {key:'https://s.wordpress.com/mshots/v1/' + encodeURIComponent(P.url) + '?w=1280&h=800', video:false, shot:true};
+  }
+  function load(P){
+    const s = sourceFor(P); if (!s) return null;
+    let e = cache.get(s.key); if (e) return e;
+    e = {s, state:'loading', src:s.key, tries:0}; cache.set(s.key, e);
+    if (s.video){ e.state = 'ready'; return e; }
+    const attempt = () => {
+      const im = new Image(); im.referrerPolicy = 'no-referrer'; im.decoding = 'async';
+      const url = s.key + (e.tries ? (s.key.indexOf('?') >= 0 ? '&' : '?') + 'retry=' + e.tries : '');
+      im.onload = () => {
+        /* the screenshot service answers with a small placeholder while it is still taking the picture */
+        if (s.shot && im.naturalWidth < 600 && e.tries < 6){ e.tries++; setTimeout(attempt, 2200 + e.tries*900); return; }
+        e.state = 'ready'; e.src = url; refresh(e);
+      };
+      im.onerror = () => { e.state = 'fail'; refresh(e); };
+      im.src = url;
+    };
+    attempt();
+    return e;
+  }
+  function media(e){
+    if (e.s.video){ const v = document.createElement('video'); v.src = e.src; v.muted = true; v.loop = true; v.playsInline = true; v.autoplay = true; v.setAttribute('muted', ''); return v; }
+    const im = document.createElement('img'); im.src = e.src; im.alt = ''; im.referrerPolicy = 'no-referrer'; return im;
+  }
+  function fill(el, e){
+    el.querySelectorAll('img,video').forEach(n => n.remove());
+    if (e.state !== 'ready') return false;
+    const m = media(e); el.appendChild(m); if (m.play) m.play().catch(() => {});
+    return true;
+  }
+  function refresh(e){
+    if (!cur || cur.e !== e) return;
+    if (e.state === 'fail'){ hide(true); inl.classList.remove('ready'); inl.innerHTML = ''; return; }
+    if (inline()){ inl.innerHTML = ''; if (fill(inl, e)) inl.classList.add('ready'); }
+    else if (card.classList.contains('on') && e.state === 'ready' && !shot.classList.contains('ready')){ fill(shot, e); shot.classList.add('ready'); }
+  }
+  function prepare(P){
+    hide(true);
+    inl.classList.remove('ready'); inl.innerHTML = '';
+    const e = load(P);
+    cur = e ? {e, P} : null;
+    if (!e) return;
+    inl.href = P.url || P.preview;
+    if (inline() && e.state === 'ready' && fill(inl, e)) inl.classList.add('ready');
+  }
+  function place(){
+    const pr = panel.getBoundingClientRect(), vr = vis.getBoundingClientRect();
+    const w = Math.min(500, innerWidth*0.34), h = 31 + w*0.625;
+    card.style.left = Math.max(16, pr.left - w - 22) + 'px';
+    card.style.top = clamp(vr.top + vr.height/2 - h/2, 16, innerHeight - h - 16) + 'px';
+  }
+  function show(){
+    if (!cur || inline() || !focused || cur.e.state === 'fail') return;
+    clearTimeout(hideT);
+    if (card.classList.contains('on')) return;
+    const {e, P} = cur;
+    host.textContent = domain(P.url || P.preview);
+    card.href = P.url || P.preview;
+    card.style.setProperty('--accent', P.color);
+    wait.textContent = 'Taking a look at ' + domain(P.url || P.preview) + '…';
+    shot.classList.remove('ready'); shot.querySelectorAll('img,video').forEach(n => n.remove());
+    if (fill(shot, e)) shot.classList.add('ready');
+    place(); card.classList.add('on'); card.setAttribute('aria-hidden', 'false');
+  }
+  function hide(now){
+    clearTimeout(hideT);
+    const go = () => { card.classList.remove('on'); card.setAttribute('aria-hidden', 'true'); shot.querySelectorAll('video').forEach(v => v.pause()); };
+    if (now) go(); else hideT = setTimeout(go, 220);
+  }
+  on(vis, 'pointerenter', show); on(vis, 'focus', show);
+  on(vis, 'pointerleave', () => hide()); on(vis, 'blur', () => hide());
+  on(card, 'pointerenter', () => clearTimeout(hideT)); on(card, 'pointerleave', () => hide());
+  on(window, 'resize', () => { if (card.classList.contains('on')) place(); });
+  return {prepare, hide};
+})();
 function keyTopWorld(k){ return deck.localToWorld(new V3(k.x, KEY_BASE + CAP.H*k.sy*0.6, k.z)); }
 function focusPose(k){
   const w = keyTopWorld(k), yaw = clamp(cam.g.yaw, -0.6, 0.6), pitch = 0.8, dist = innerWidth > 820 ? 4.3 : 5.4, t = w.clone();
@@ -4505,6 +4625,7 @@ function close(){
   if (!focused) return;
   focused.hold = false; activate(focused); focused = null;
   panel.classList.remove('open', 'show'); panel.setAttribute('aria-hidden', 'true');
+  PEEK.hide(true);
   flyTo(preFocus || homePose(), 1.4); preFocus = null;
   SFX.closeSound();
   try { cv.focus({preventScroll:true}); } catch (_){}
@@ -4911,6 +5032,7 @@ function dispose(){
   try { renderer.forceContextLoss(); } catch (_){}
   cv.remove();
   panel.classList.remove('open', 'show'); panel.setAttribute('aria-hidden', 'true');
+  PEEK.hide(true); $('pPeek').innerHTML = ''; $('pPeek').classList.remove('ready');
   hideTag(); closeIndex(true);
   idxList.innerHTML = ''; dotsEl.innerHTML = '';
 }

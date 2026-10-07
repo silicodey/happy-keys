@@ -159,6 +159,7 @@ function dispose(){
   try { renderer.forceContextLoss(); } catch (_){}
   cv.remove();
   panel.classList.remove('open', 'show'); panel.setAttribute('aria-hidden', 'true');
+  PEEK.hide(true); $('pPeek').innerHTML = ''; $('pPeek').classList.remove('ready');
   hideTag(); closeIndex(true);
   idxList.innerHTML = ''; dotsEl.innerHTML = '';
 }
